@@ -11,13 +11,31 @@ import electron from "vite-plugin-electron/simple";
 import polyfillExports from "vite-plugin-electron/polyfill-exports";
 import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
-
+import Unocss from "unocss/vite";
+import Components from "unplugin-vue-components/vite";
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import Icons from "unplugin-icons/vite";
+import IconsResolver from "unplugin-icons/resolver";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+    Unocss(),
     AutoImport({
       imports: ["vue", "vue-router"],
+      resolvers: [ElementPlusResolver(), IconsResolver()],
+    }),
+    Components({
+      resolvers: [
+        ElementPlusResolver(),
+        IconsResolver({
+          enabledCollections: ["ep"],
+        }),
+      ],
+    }),
+    Icons({
+      autoInstall: true,
+      // compiler: 'vue3',
     }),
     electron({
       main: {
@@ -59,6 +77,15 @@ export default defineConfig({
       // output: {
       //   format: "es",
       // },
+    },
+  },
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://1119.yohub.online/", // 目标跨域服务器地址 https://yohub.online
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
     },
   },
 });

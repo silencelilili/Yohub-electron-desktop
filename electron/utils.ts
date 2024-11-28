@@ -9,7 +9,7 @@ import path from "node:path";
 import { parse } from "url";
 export const eventKey: string = "BRIDGE_EVENT_KEY";
 
-export const WEBUI_PROTOCOL = "adg";
+export const WEBUI_PROTOCOL = "yohub";
 export const WEBUI_BASE_URL =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5173/"
@@ -30,6 +30,11 @@ export const kContainerIdsKey = "kDesktopContainerIdsKey";
 export function getPreloadPath() {
   return path.join(__dirname, "preload.js");
 }
+
+/**
+ * 是否为Mac
+ */
+export const isMac = process.platform === "darwin";
 
 /**
  * 发送事件 JS

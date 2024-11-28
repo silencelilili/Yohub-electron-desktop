@@ -8,6 +8,7 @@ import { createApp, defineCustomElement } from "vue";
 import router from "./router";
 import "./style.less";
 import App from "./App.vue";
+import "virtual:uno.css";
 
 const app = createApp(App);
 // 挂载路由

@@ -25,8 +25,8 @@ const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export let mainWindow: BrowserWindow;
 export function createWindow() {
   const win = new BrowserWindow({
-    width: 600,
-    height: 800,
+    width: 1080,
+    height: 700,
     center: true,
     // frame: false,
     // titleBarStyle: "hiddenInset",
@@ -56,11 +56,14 @@ export function createWindow() {
 
   mainWindow = win;
   // remote.enable(mainWindow.webContents);
+  return win;
 }
 
 export function restoreMainWindow() {
-  mainWindow?.restore();
-  mainWindow?.show();
+  if (!mainWindow?.isDestroyed()) {
+    mainWindow?.restore();
+    mainWindow?.show();
+  }
 }
 
 // 创建历史记录窗口

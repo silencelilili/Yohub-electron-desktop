@@ -6,12 +6,13 @@
  */
 import { app, BrowserWindow, session } from "electron";
 import path from "node:path";
-import { createWindow, restoreMainWindow } from "./window";
+import { createWindow, restoreMainWindow, mainWindow } from "./window";
 import { DesktopService } from "./service";
 import { StoreService } from "./store";
 // import { loadExtension } from "./utils";
 import ProtocolService from "./protocol";
 import { setupMenu } from "./menu";
+import { setupTray, updateTray } from "./tray";
 
 // The built directory structure
 
@@ -60,9 +61,16 @@ app.whenReady().then(() => {
   // 菜单
   setupMenu();
 
-  // 托盘 TODO
+  // 托盘
+  setupTray(mainWindow);
+  // TODO: 托盘 模拟更新速率
+  let _n = 0;
+  setInterval(() => {
+    _n += 12;
+    updateTray(_n, _n + 3);
+  }, 1000);
 
-  // 插件 TODO
+  // 插件 无
   // setTimeout(() => {
   //   loadExtension()
   // }, 1000);

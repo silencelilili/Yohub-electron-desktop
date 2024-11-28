@@ -2,13 +2,18 @@
  * @Date: 2024-10-15 15:47:15
  * @LastEditors: lixuedan
  * @FilePath: /electron/menu.ts
- * @Description: 菜单管理
+ * @Description: 应用菜单管理
  */
 
 import { app, Menu, MenuItemConstructorOptions } from "electron";
 
 /**
- * 创建应用菜单
+ * 初始化应用菜单
+ *
+ * 这个函数创建了一个包含多个菜单项的模板，每个菜单项都有一个标签和一个子菜单，
+ * 子菜单中包含了一些操作选项，如撤销、重做、剪切、复制、粘贴和全选。这些操作选项
+ * 通常用于文本编辑或其他类型的数据操作。
+ * @returns 初始化后的菜单对象。
  */
 export function setupMenu() {
   type MenuItemsType = MenuItemConstructorOptions[];
@@ -25,7 +30,7 @@ export function setupMenu() {
         {
           label: "退出",
           click: () => {
-            console.log("New");
+            console.log("[menu] 退出");
             app.quit();
           },
         },

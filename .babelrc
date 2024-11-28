@@ -3,12 +3,11 @@
     [
       "env",
       {
-        "modules": false,
         "target": {
           "browsers": ["last 2 versions", "safari >= 7"]
         }
       }
     ]
   ],
-  "plugins": ["transform-vue-jsx"]
+  "plugins": ["transform-vue-jsx", "syntax-dynamic-import"]
 }

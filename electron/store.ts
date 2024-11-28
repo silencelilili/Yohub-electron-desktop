@@ -36,7 +36,7 @@ export class StoreService {
     );
   }
 }
-const store = new Store({ name: "adg-store" });
+const store = new Store({ name: "yohub-store" });
 
 const setStore = (_event: any, { key = "", value = null }): void => {
   console.log("[store] setStore=====>", key, value);

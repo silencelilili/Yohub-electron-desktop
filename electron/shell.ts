@@ -49,12 +49,12 @@ function execCommand(command: string) {
 function _execCommand(command: string) {
   exec(command, (error, stdout, stderr) => {
     if (error) {
-      console.error(`执行出错: ${error}`);
+      console.error(`[shell]执行出错: ${error}`);
       return;
     }
-    console.log(`标准输出: ${stdout}`);
+    console.log(`[shell]标准输出: ${stdout}`);
     if (stderr) {
-      console.error(`标准错误: ${stderr}`);
+      console.error(`[shell]标准错误: ${stderr}`);
     }
   });
 }
@@ -67,12 +67,12 @@ function _sudoExecCommand(command: string) {
   sudo.exec(command, options, (error, stdout, stderr) => {
     isSudo = true;
     if (error) {
-      console.error(`sudo 执行出错: ${error}`);
+      console.error(`[shell] sudo 执行出错: ${error}`);
       return;
     }
-    console.log(`sudo 标准输出: ${stdout}`);
+    console.log(`[shell] sudo 标准输出: ${stdout}`);
     if (stderr) {
-      console.error(`sudo 标准错误: ${stderr}`);
+      console.error(`[shell] sudo 标准错误: ${stderr}`);
     }
   });
 }
