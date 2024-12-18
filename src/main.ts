@@ -6,9 +6,16 @@
  */
 import { createApp, defineCustomElement } from "vue";
 import router from "./router";
-import "./style.less";
+import store from "./stores";
+import "./styles/style.less";
 import App from "./App.vue";
+import i18n from "./i18n";
 import "virtual:uno.css";
+import "virtual:svg-icons-register";
+import SvgIcon from "./components/SvgIcon.vue";
+// import echarts from "./utils/echarts";
+import "element-plus/theme-chalk/dark/css-vars.css";
+import "./styles/dark/css-vars.less";
 
 const app = createApp(App);
 // 挂载路由
@@ -19,13 +26,12 @@ const app = createApp(App);
 //     el.style.display = "none";
 //   },
 // });
+app.component("svg-icon", SvgIcon);
 app.use(router);
+app.use(i18n);
+app.use(store);
+// app.config.globalProperties.$echarts = echarts;//vue3的挂载方式
 app.mount("#app").$nextTick(() => {
   // Remove Preload scripts loading
   postMessage({ payload: "removeLoading" }, "*");
-
-  // Use contextBridge
-  // window.ipcRenderer.on('main-process-message', (_event, message) => {
-  //   console.log(message)
-  // })
 });

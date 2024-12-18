@@ -4,13 +4,13 @@
  * @FilePath: /electron/dialog.ts
  * @Description: 头部注释
  */
-import { BrowserView, app, ipcMain } from "electron";
+import { BrowserView, ipcMain } from "electron";
 import { join } from "path";
 import { getPreloadPath } from "./utils";
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 
 interface IDialogTabAssociation {
-  tabId?: number;
+  tabId?: number | undefined;
   getTabInfo?: (tabId: number) => any;
   setTabInfo?: (tabId: number, ...args: any[]) => void;
 }
@@ -96,7 +96,6 @@ export class DialogService {
       getBounds,
       devtools,
       onHide,
-      hideTimeout,
       onWindowBoundsUpdate,
       tabAssociation,
     } = options;
@@ -117,7 +116,7 @@ export class DialogService {
     if (foundDialog) {
       browserWindow.addBrowserView(browserView);
       foundDialog.rearrange();
-      return null;
+      // return null;
     }
 
     browserWindow.addBrowserView(browserView);
@@ -127,10 +126,10 @@ export class DialogService {
       browserView.webContents.openDevTools({ mode: "detach" });
     }
 
-    const tabsEvents: {
-      activate?: (id: number) => void;
-      remove?: (id: number) => void;
-    } = {};
+    // const tabsEvents: {
+    //   activate?: (id: number) => void;
+    //   remove?: (id: number) => void;
+    // } = {};
 
     const windowEvents: {
       resize?: () => void;
@@ -145,7 +144,7 @@ export class DialogService {
       name,
       tabIds: [tabAssociation?.tabId],
       _sendTabInfo: (tabId) => {
-        if (tabAssociation.getTabInfo) {
+        if (tabAssociation?.getTabInfo) {
           const data = tabAssociation.getTabInfo(tabId);
           browserView.webContents.send("update-tab-info", tabId, data);
         }

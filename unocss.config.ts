@@ -16,6 +16,8 @@ export default defineConfig({
     ["flex-center", "flex justify-center items-center"],
     // 纵向 - 垂直水平居中
     ["flex-center-col", "flex flex-col justify-center items-center"],
+    // 横向 - 两端对齐 水平居中
+    ["flex-between-center", "flex justify-between items-center"],
   ],
   theme: {
     colors: {

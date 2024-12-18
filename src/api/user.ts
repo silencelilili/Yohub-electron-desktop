@@ -2,12 +2,13 @@
  * @description: 用户相关接口
  */
 import request from "./index";
+// import request from "./_fetch";
 
 /**
  * @description: 获取用户信息
  * @return {*}
  */
-export function getUserInfo(data: { user_id?: string }) {
+export function getUserInfo(data?: { user_id?: string }) {
   return request.post("/user/get_user", data);
 }
 
@@ -48,4 +49,13 @@ export function bindPhone(phone: string, code: string) {
  */
 export function bindEmail(email: string, code: string) {
   return request.post("/user/bindEmail", { email, code });
+}
+
+/**
+ * 通过订阅地址拉取配置-PC
+ */
+/** 订阅类型 */
+export type SubType = "json" | "clash" | "singbox" | "v2rayjson" | "sip008";
+export function getConfigSub(token: string, subtype: SubType) {
+  return request.post(`/sub/${token}/${subtype}`, {});
 }

@@ -11,8 +11,9 @@ import {
   Menu,
   MenuItemConstructorOptions,
   BrowserWindow,
+  session,
 } from "electron";
-import { isMac } from "./utils";
+import { convertByte, isMac } from "./utils";
 import { join } from "node:path";
 import { restoreMainWindow } from "./window";
 
@@ -55,8 +56,9 @@ export function setupTray(mainWindow: BrowserWindow | null) {
     },
     {
       label: "退出",
-      click: () => {
+      click: async () => {
         console.log("[tray] 退出");
+        await session.defaultSession.clearCache();
         app.quit();
       },
     },
@@ -78,7 +80,14 @@ export function setupTray(mainWindow: BrowserWindow | null) {
  * @param up - 当前的上传速度，以 kb/s 为单位。
  * @param down - 当前的下载速度，以 kb/s 为单位。
  */
-export function updateTray(up: number, down: number) {
-  // 如果托盘对象存在，则更新其标题以显示新的上传和下载速度。
-  tray?.setTitle(`${up}kb/s ${down}kb/s`);
+
+export function updateTray(data: any) {
+  if (!!data) {
+    const _up = convertByte(data?.diffUp) || "0.00kb";
+    const _down = convertByte(data?.diffDown) || "0.00kb";
+    // 如果托盘对象存在，则更新其标题以显示新的上传和下载速度。
+    tray?.setTitle(`${_up}/s ${_down}/s`);
+  } else {
+    tray?.setTitle("0.0kb/s 0.0kb/s");
+  }
 }

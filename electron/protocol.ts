@@ -1,9 +1,9 @@
 // 自定义协议
-import { app, protocol, session } from "electron";
+import { app, protocol } from "electron";
 import path from "path";
 import { parse } from "url";
 
-const PROTOCOL_URL = "adg-browser";
+const PROTOCOL_URL = "yohub-browser";
 
 // 自定义协议的链接 正则
 const DEFAULT_PROTOCOL_REGEXP = new RegExp(`^${PROTOCOL_URL}://`);
@@ -52,7 +52,7 @@ function watchWindowProtocol() {
   });
 }
 
-const myScheme = "adg";
+const myScheme = "yohub";
 
 // 需要再ready事件前调用, 并且只调用一次
 protocol.registerSchemesAsPrivileged([

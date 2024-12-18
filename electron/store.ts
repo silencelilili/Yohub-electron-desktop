@@ -26,7 +26,7 @@ export class StoreService {
       async (event: any, type: string, params: IStoreParamsData | string) => {
         // const type = params['type']
         // const data = params['data']
-        console.log(type);
+        // console.log(type);
         const func = functionMap[type];
         if (!func) {
           throw new Error(type + " 方法未实现");
@@ -70,3 +70,4 @@ const functionMap: any = {
   has: hasStore,
   clear: clearStore,
 };
+export { store };

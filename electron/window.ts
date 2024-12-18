@@ -30,9 +30,11 @@ export function createWindow() {
     center: true,
     // frame: false,
     // titleBarStyle: "hiddenInset",
+    resizable: false,
     webPreferences: {
       preload: getPreloadPath(),
       nodeIntegration: true,
+      // webSecurity: false,
     },
   });
   if (VITE_DEV_SERVER_URL) {
@@ -64,37 +66,4 @@ export function restoreMainWindow() {
     mainWindow?.restore();
     mainWindow?.show();
   }
-}
-
-// 创建历史记录窗口
-export let historyWindow: BrowserWindow;
-export function createHistoryWindow() {
-  const child = new BrowserWindow({
-    width: 320,
-    height: 600,
-    parent: mainWindow,
-    modal: true,
-    show: false,
-    frame: false,
-    // titleBarStyle: 'hidden',
-    resizable: false,
-    webPreferences: {
-      preload: getPreloadPath(),
-      partition: "persist:view",
-    },
-  });
-  child.loadURL(`${VITE_DEV_SERVER_URL}history.html`);
-  // const _parent = mainWindow.getBounds()
-  // child.setBounds({
-  //   x: _parent.width, y: _parent.y + 64
-  // })
-  child.once("ready-to-show", () => {
-    child.show();
-  });
-
-  historyWindow = child;
-}
-
-export function closeHistoryWindow() {
-  if (!!historyWindow) historyWindow.close();
 }

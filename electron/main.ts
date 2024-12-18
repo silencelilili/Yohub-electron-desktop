@@ -12,7 +12,8 @@ import { StoreService } from "./store";
 // import { loadExtension } from "./utils";
 import ProtocolService from "./protocol";
 import { setupMenu } from "./menu";
-import { setupTray, updateTray } from "./tray";
+import { setupTray } from "./tray";
+import useCookie from "./useCookie";
 
 // The built directory structure
 
@@ -31,7 +32,12 @@ if (!gotTheLock) {
 
 // 忽略证书相关错误 在ready前使用
 app.commandLine.appendSwitch("ignore-certificate-errors");
-
+// 禁用chromium的BlockInsecurePrivateNetworkRequests特性
+app.commandLine.appendSwitch(
+  "disable-features",
+  "BlockInsecurePrivateNetworkRequests"
+);
+// app.commandLine.appendSwitch("disable-site-isolation-trials");
 // 如果有第二个实例 将重启应用
 app.on("second-instance", () => {
   restoreMainWindow();
@@ -56,24 +62,14 @@ app.whenReady().then(() => {
   // 自定义协议
   const partition = session.fromPartition("persist:view");
   ProtocolService.registerStringProtocol(partition);
-  console.log("[session] partition", partition);
+  // console.log("[session] partition", partition);
 
   // 菜单
-  setupMenu();
+  setupMenu(mainWindow);
 
+  useCookie(mainWindow);
   // 托盘
   setupTray(mainWindow);
-  // TODO: 托盘 模拟更新速率
-  let _n = 0;
-  setInterval(() => {
-    _n += 12;
-    updateTray(_n, _n + 3);
-  }, 1000);
-
-  // 插件 无
-  // setTimeout(() => {
-  //   loadExtension()
-  // }, 1000);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

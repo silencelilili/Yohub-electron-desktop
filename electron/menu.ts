@@ -5,7 +5,13 @@
  * @Description: 应用菜单管理
  */
 
-import { app, Menu, MenuItemConstructorOptions } from "electron";
+import {
+  app,
+  BrowserWindow,
+  Menu,
+  MenuItemConstructorOptions,
+  session,
+} from "electron";
 
 /**
  * 初始化应用菜单
@@ -15,8 +21,10 @@ import { app, Menu, MenuItemConstructorOptions } from "electron";
  * 通常用于文本编辑或其他类型的数据操作。
  * @returns 初始化后的菜单对象。
  */
-export function setupMenu() {
+let _mainWindow: BrowserWindow | null = null;
+export function setupMenu(mainWindow: BrowserWindow | null) {
   type MenuItemsType = MenuItemConstructorOptions[];
+  _mainWindow = mainWindow;
   const template: MenuItemsType = [
     {
       label: "app",
@@ -29,8 +37,9 @@ export function setupMenu() {
         },
         {
           label: "退出",
-          click: () => {
+          click: async () => {
             console.log("[menu] 退出");
+            await session.defaultSession.clearCache();
             app.quit();
           },
         },
@@ -67,9 +76,11 @@ export function setupMenu() {
           role: "paste",
         },
         {
-          label: "全选",
-          accelerator: "CmdOrCtrl+A",
-          role: "selectAll",
+          label: "开发者工具",
+          click: () => {
+            console.log("[menu] 开发者工具");
+            if (_mainWindow) _mainWindow.webContents.openDevTools();
+          },
         },
       ],
     },

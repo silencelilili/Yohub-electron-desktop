@@ -12,13 +12,49 @@ declare global {
   }
 }
 
+YohubEventManager.shared.register();
+export function startXray() {
+  window.$Yohub.$desktop({ type: "startXray" });
+}
+export function stopXray() {
+  window.$Yohub.$desktop({ type: "stopXray" });
+}
 export function connect(data: any) {
+  startXray();
   window.$Yohub.$desktop({ type: "connect", data });
 }
 export function disconnect() {
   window.$Yohub.$desktop({ type: "disconnect" });
+  stopXray();
+}
+export function getTraffic() {
+  const response = window.$Yohub.$desktop({ type: "getTraffic" });
+  response.then((data: any) => {
+    console.log(`「监听」流量getTraffic`, data);
+    bus.emit("traffic-result", data);
+  });
+}
+export function getLatency() {
+  const response = window.$Yohub.$desktop({ type: "getLatency" });
+  response.then((data: any) => {
+    console.log(`「监听」延迟getLatency`, data);
+    bus.emit("latency-result", data);
+  });
+}
+// 未使用
+export function __onTrafficResult(
+  source: any,
+  callback: (data: any) => void
+): any {
+  YohubEventManager.shared.on(source, "traffic-result", (data) => {
+    console.log(`「监听」流量traffic-result`, data);
+    callback(data);
+  });
 }
 
+export function writeConfig(data: any) {
+  window.$Yohub.$desktop({ type: "writeConfig", data });
+}
 /**
  * 框架准备完毕
  */
@@ -33,6 +69,10 @@ export function handlePrint(data: any) {
   window.$Yohub.$desktop({ type: "print", data });
 }
 
+export function handleMainLogin(_data: any) {
+  console.log("handleMainLogin", _data);
+  return window.$Yohub.$desktop({ type: "mainLogin", data: { ..._data } });
+}
 /**
  * 「监听」创建 Tab
  */

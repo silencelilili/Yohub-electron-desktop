@@ -19,6 +19,19 @@ export const WEBUI_URL_SUFFIX = WEBUI_BASE_URL.startsWith("http")
   ? ".html"
   : "";
 
+const build_resources = () => {
+  const path = app.getAppPath();
+  const parts = path.split("/");
+  let newParts = parts.slice(0, parts.length - 1);
+  newParts.push("resources");
+  return newParts.join("/");
+};
+export const resourcePath = () => {
+  return app.isPackaged
+    ? process.resourcesPath + "/resources" || build_resources()
+    : path.join(__dirname, "../resources");
+};
+
 /**
  * 容器 ID 集合字段
  */
@@ -100,7 +113,7 @@ export function startDevToolsIfNeed(webContents: WebContents, isOpen = false) {
  * 加载浏览器插件
  */
 export function loadExtension() {
-  const PLUGINS_PATH = path.join(__dirname, "../plugins/vuetool_6.5.1_0");
+  const PLUGINS_PATH = path.join(__dirname, "../resources/vuetool_6.5.1_0");
   session.defaultSession
     .loadExtension(PLUGINS_PATH, { allowFileAccess: true })
     .then((res) => {
@@ -185,4 +198,13 @@ export function setDefaultProtocol() {
     isSet = app.setAsDefaultProtocolClient(agreement);
   }
   console.log("自定义协议是否注册成功", isSet);
+}
+
+export function convertByte(byteValue: number) {
+  const kbValue = byteValue / 1024;
+  if (kbValue >= 1024) {
+    const mbValue = kbValue / 1024;
+    return `${mbValue.toFixed(2)}MB`;
+  }
+  return `${kbValue.toFixed(2)}KB`;
 }
