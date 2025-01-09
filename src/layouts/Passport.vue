@@ -6,7 +6,7 @@
       </div>
     </div>
     <div class="flex-1 flex flex-col p-4">
-      <div class="login-title">
+      <div class="login-title title-bar">
         <div class="pb-2">
           <img
             v-if="!isDark"

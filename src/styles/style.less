@@ -17,6 +17,7 @@
     --el-color-primary-light-3: #285eff;
     // --el-bg-color: #F3F5F7;
     --el-text-color-primary: #333333;
+    --el-mask-color: #ffffff57;
 }
 html {
     background-color: #F3F5F7;
@@ -54,6 +55,10 @@ h1 {
     font-size: 3.2em;
     line-height: 1.1;
 }
+
+.small-font {
+    font-size: .75rem;
+}
 // 全局设置滚动条样式
 /*定义滚动条高宽及背景
 高宽分别对应横竖滚动条的尺寸*/
@@ -73,7 +78,18 @@ h1 {
     -webkit-box-shadow:inset 0 0 6px rgba(0,0,0,0.1);
     background-color:rgba(0,0,0,0.2);
 }
-
+.title-bar{
+    -webkit-app-region: drag;
+    user-select: none;
+    display: flex;
+    align-items: center;
+}
+.error-alert{
+  background-color: #FECECE !important;
+  .el-alert__description{
+  color: #EF3434 !important;
+  }
+}
 #app {
     // max-width: 1280px;
     min-height: 100vh;
@@ -86,6 +102,11 @@ h1 {
     }
     .el-card.card-border{
         border: 1px solid var(--el-border-color);
+    }
+    .el-drawer{
+        .el-drawer__header{
+            margin-bottom: 0px;
+        }
     }
 }
 
@@ -123,6 +144,9 @@ h1 {
 }
 .bg-color{
     background-color: #fff;
+}
+.bg-color2{
+    background-color: #F3F5F7;
 }
 .box-shadow{
     box-shadow: 0 0 8px #eaeaea;
@@ -214,4 +238,39 @@ h1 {
 .invite-banner-bg {
     border-radius: 12px;
     background-color: #EFF3FF;
+}
+// 订阅页面
+.vip-bg {
+  background-image: url("@/assets/images/users/bg_vip.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+.free-bg {
+  background-image: url("@/assets/images/users/bg_free.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.circle-green {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  background-color: #00c48d;
+}
+.circle-blue {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  background-color: #3366ff;
+}
+.circle-red {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  background-color: #ff4d4f;
 }

@@ -28,8 +28,8 @@ export function createWindow() {
     width: 1080,
     height: 700,
     center: true,
-    // frame: false,
-    // titleBarStyle: "hiddenInset",
+    frame: false,
+    titleBarStyle: "hiddenInset",
     resizable: false,
     webPreferences: {
       preload: getPreloadPath(),

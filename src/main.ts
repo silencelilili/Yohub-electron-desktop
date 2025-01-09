@@ -16,7 +16,7 @@ import SvgIcon from "./components/SvgIcon.vue";
 // import echarts from "./utils/echarts";
 import "element-plus/theme-chalk/dark/css-vars.css";
 import "./styles/dark/css-vars.less";
-
+import "element-plus/es/components/message-box/style/css";
 const app = createApp(App);
 // 挂载路由
 // setupRouter(app);

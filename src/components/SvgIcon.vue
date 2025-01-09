@@ -40,6 +40,7 @@ const symbolId = computed(() => `#${props.prefix}-${props.name}`);
   vertical-align: middle;
   fill: currentColor;
   overflow: hidden;
+  outline: none;
 }
 
 .svg-external-icon {

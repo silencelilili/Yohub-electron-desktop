@@ -12,6 +12,7 @@ import {
   MenuItemConstructorOptions,
   session,
 } from "electron";
+import { quitApp } from "./utils";
 
 /**
  * 初始化应用菜单
@@ -39,8 +40,7 @@ export function setupMenu(mainWindow: BrowserWindow | null) {
           label: "退出",
           click: async () => {
             console.log("[menu] 退出");
-            await session.defaultSession.clearCache();
-            app.quit();
+            await quitApp();
           },
         },
       ],

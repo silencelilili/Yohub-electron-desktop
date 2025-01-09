@@ -7,6 +7,7 @@
 import { app, session, WebContents, protocol } from "electron";
 import path from "node:path";
 import { parse } from "url";
+import { ShellService } from "./shell";
 export const eventKey: string = "BRIDGE_EVENT_KEY";
 
 export const WEBUI_PROTOCOL = "yohub";
@@ -19,7 +20,7 @@ export const WEBUI_URL_SUFFIX = WEBUI_BASE_URL.startsWith("http")
   ? ".html"
   : "";
 
-const build_resources = () => {
+export const build_resources = () => {
   const path = app.getAppPath();
   const parts = path.split("/");
   let newParts = parts.slice(0, parts.length - 1);
@@ -48,6 +49,8 @@ export function getPreloadPath() {
  * 是否为Mac
  */
 export const isMac = process.platform === "darwin";
+
+export const isWindows = process.platform === "win32";
 
 /**
  * 发送事件 JS
@@ -200,11 +203,26 @@ export function setDefaultProtocol() {
   console.log("自定义协议是否注册成功", isSet);
 }
 
+// 字节转换
 export function convertByte(byteValue: number) {
   const kbValue = byteValue / 1024;
   if (kbValue >= 1024) {
     const mbValue = kbValue / 1024;
-    return `${mbValue.toFixed(2)}MB`;
+    return `${mbValue.toFixed(2)}mb`;
   }
-  return `${kbValue.toFixed(2)}KB`;
+  return `${kbValue.toFixed(2)}kb`;
+}
+
+// 退出应用
+export async function quitApp() {
+  try {
+    // 断开连接
+    await ShellService.shared.disconnect();
+  } catch (error) {
+  } finally {
+    // 清除缓存
+    await session.defaultSession.clearCache();
+    // 退出
+    app.quit();
+  }
 }

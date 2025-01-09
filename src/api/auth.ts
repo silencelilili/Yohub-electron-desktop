@@ -48,6 +48,23 @@ export function register(data: IRegisterParams) {
 export function logout() {
   return request.post("/user/logout/ajax");
 }
+/**
+ * 账号注销
+ */
+export function userDestroy() {
+  return request.post("/user/del", {});
+}
+
+/**
+ * 用户注册-发送邮箱验证码
+ * @param {
+ * sceneType: 0 注册; 1 忘记密码; 2 修改邮箱
+ * email: string
+ * }
+ */
+export const sendEmailCode = (data: any) => {
+  return request.post("/auth/send_code", data);
+};
 
 /** 其他登录方式 */
 /**

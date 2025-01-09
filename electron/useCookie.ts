@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from "electron";
+import { app, BrowserWindow, session, shell } from "electron";
 import { _setCookieArray } from "./net";
 import { store } from "./store";
 import log from "./log";
@@ -10,11 +10,7 @@ function useCookie(mainWindow: BrowserWindow | null) {
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     if (details?.url?.startsWith(`${BASE_URL}`)) {
-      const _cook = store.get("cookies");
       log.info("=========拦截到请求:" + details?.url);
-      log.info(["=========拦截到请求，本地-cookie:", _cook]);
-      // log.info("=========拦截到请求-requestHeaders:", details.requestHeaders);
-      // log.info("=========拦截到请求-cookiesArr:", cookiesArr);
       if (
         details.requestHeaders &&
         details.requestHeaders?.Cookie &&
@@ -22,19 +18,11 @@ function useCookie(mainWindow: BrowserWindow | null) {
       ) {
         cookiesArr = [];
         details.requestHeaders["Cookie"] = "";
-        log.info(["登录接口设置cookie:", details.requestHeaders["Cookie"]]);
+        // log.info(["登录接口设置cookie:", details.requestHeaders["Cookie"]]);
       } else {
         details.requestHeaders["Cookie"] = cookiesArr.join("; ");
-        log.info(["其他接口设置cookie:", cookiesArr]);
+        // log.info(["其他接口设置cookie:", cookiesArr]);
       }
-      // if (
-      //   details.requestHeaders &&
-      //   !details.requestHeaders?.Cookie &&
-      //   cookiesArr.length &&
-      //   !details.url.includes("auth/login")
-      // ) {
-      //   details.requestHeaders["Cookie"] = cookiesArr.join("; ");
-      // }
     }
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
@@ -59,8 +47,23 @@ function useCookie(mainWindow: BrowserWindow | null) {
           details.responseHeaders["set-cookie"][i] += "; SameSite=None; Secure";
         }
       }
+
       callback({ responseHeaders: details.responseHeaders });
     }
   );
+
+  session.defaultSession.webRequest.onBeforeRedirect(filter, (details) => {
+    log.info("--------Redirecting:" + details?.url);
+    if (details.url.includes("user/payment/purchase/stripe")) {
+      if (details.responseHeaders && details.responseHeaders["location"]) {
+        log.info("Redirecting:", details.responseHeaders["location"]);
+        const _url = details.responseHeaders["location"][0];
+        shell.openExternal(_url);
+        // 这里可以自定义处理逻辑，比如取消重定向
+        // callback({cancel: true});
+      }
+    }
+    // callback({ cancel: false });
+  });
 }
 export default useCookie;

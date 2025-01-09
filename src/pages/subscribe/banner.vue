@@ -3,7 +3,7 @@
   <div class="banner-wrap bg-color">
     <div class="font-size-6 fw-500 mt-7"><el-text>VIP会员特权</el-text></div>
     <div v-for="(item, index) in bannerList" :key="index">
-      <img :src="item.img" class="mb-4" style="width: 42px" />
+      <img :src="item.img" class="mb-2" style="width: 38px" />
       <div>
         <el-text>{{ item.label[0] }}</el-text>
       </div>
@@ -49,7 +49,7 @@ const bannerList = [
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
   div {
     color: #333333;
   }

@@ -15,15 +15,26 @@ export const homeRoutes: RouteRecordRaw = {
     {
       path: "home",
       name: "home",
-      alias: "/user",
       component: () => import("@/pages/home/index.vue"),
       meta: {
         locale: "menu.speedStatus",
         order: 1,
         icon: "nav-speed",
+        ignoreCache: false,
+        KeepAlive: true,
       },
     },
-
+    {
+      path: "user",
+      name: "user",
+      component: () => import("@/pages/home/index.vue"),
+      meta: {
+        locale: "menu.speedStatus",
+        order: 1,
+        icon: "nav-speed",
+        hide: true,
+      },
+    },
     {
       path: "subscribe",
       name: "subscribe",
@@ -71,6 +82,36 @@ export const homeRoutes: RouteRecordRaw = {
       meta: {
         locale: "menu.invite",
         order: 6,
+        hide: true,
+      },
+    },
+    {
+      path: "guide",
+      name: "guide",
+      component: () => import("@/pages/guide/index.vue"),
+      meta: {
+        locale: "menu.guide",
+        order: 7,
+        hide: true,
+      },
+    },
+    {
+      path: "notice",
+      name: "notice",
+      component: () => import("@/pages/notice/index.vue"),
+      meta: {
+        locale: "menu.notice",
+        order: 8,
+        hide: true,
+      },
+    },
+    {
+      path: "connectUs",
+      name: "connectUs",
+      component: () => import("@/pages/connectUs/index.vue"),
+      meta: {
+        locale: "menu.connectUs",
+        order: 9,
         hide: true,
       },
     },

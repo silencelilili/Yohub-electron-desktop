@@ -16,12 +16,15 @@ export interface ILoginResponse {
   // 账号主键ID
   user_id: string;
 }
+
 /**
  * 注册
  */
 export interface IRegisterParams {
   /** 账号/邮箱 */
   email: string;
+  /** 邮箱验证码 */
+  emailcode: string;
   /** 密码 */
   password: string;
   /** 确认密码 */
@@ -77,5 +80,27 @@ export interface IUserInfo {
   last_check_in_time?: string;
   /** 最后登录时间 */
   last_login_time?: string;
+  [x: string]: any;
+}
+/**
+ * 上报信息
+ */
+export interface IReportParams {
+  /** type：终端类型：windows，macos，ios，android   */
+  type: string;
+  /** version：终端版本：不同类型终端对应的版本号   */
+  version: string;
+  /** ipLibMd5：分流策略：IP库文件MD5值   */
+  ipLibMd5?: string;
+  /** geoipMd5：分流策略：geoip文件MD5值   */
+  geoipMd5?: string;
+  /** geositeMd5：分流策略：geosite文件MD5值   */
+  geositeMd5?: string;
+  /** totalUsedTraffic：今天使用的总流量   */
+  totalUsedTraffic?: string;
+  /** 7daysUsedTotalTraffic：近7天使用的总流量（包含上传和下载）   */
+  sevenDaysUsedTotalTraffic?: string;
+  /** 7daysUpAndDownTraffic：近7天上传/下载流量 */
+  sevenDaysUpAndDownTraffic?: string;
   [x: string]: any;
 }

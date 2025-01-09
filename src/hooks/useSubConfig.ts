@@ -15,8 +15,8 @@ export function useSubConfig() {
   const userInfo = computed(() => userStore.userInfo);
   const getConfig = async (type: SubType) => {
     loading.value = true;
-    if (userInfo.value?.nodeUrl) {
-      fetch(userInfo.value.nodeUrl + "/" + type)
+    if (userInfo.value?.linkUrl) {
+      fetch(userInfo.value.linkUrl + "/" + type)
         .then((res) => res.json())
         .then((data) => {
           console.log("subConfig data", data);

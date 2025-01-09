@@ -2,6 +2,7 @@
  * @description: 用户相关接口
  */
 import request from "./index";
+import { IReportParams } from "./types";
 // import request from "./_fetch";
 
 /**
@@ -47,9 +48,28 @@ export function bindPhone(phone: string, code: string) {
 /**
  * 绑定邮箱
  */
-export function bindEmail(email: string, code: string) {
-  return request.post("/user/bindEmail", { email, code });
+export function bindEmail(data: { email: string; code: string }) {
+  return request.post("/user/bindEmail", data);
 }
+/**
+ * 修改邮箱
+ */
+export function updateEmail(data: { newemail: string; code: string }) {
+  return request.post("/user/email", data);
+}
+
+/**
+ * 获取用户邀请信息
+ */
+export const getInviteInfo = () => {
+  return request.post("/user/query_invite", {});
+};
+/**
+ * 获取用户公告/消息内容
+ */
+export const getNoticeContent = () => {
+  return request.post("/user/announcement", {});
+};
 
 /**
  * 通过订阅地址拉取配置-PC
@@ -59,3 +79,18 @@ export type SubType = "json" | "clash" | "singbox" | "v2rayjson" | "sip008";
 export function getConfigSub(token: string, subtype: SubType) {
   return request.post(`/sub/${token}/${subtype}`, {});
 }
+
+/**
+ * 获取链路列表
+ */
+export function getNodesList() {
+  return request.post("/user/query_nodes", {});
+}
+
+/**
+ * 信息上报
+ */
+
+export const report = (data: IReportParams) => {
+  return request.post("/user/clients/report", data);
+};

@@ -70,11 +70,11 @@ export const paymentOptions = [
     value: "alipay",
     icon: "pay-ali.png",
   },
-  {
-    label: "PayPal",
-    value: "paypal",
-    icon: "pay-pal.png",
-  },
+  // {
+  //   label: "PayPal",
+  //   value: "paypal",
+  //   icon: "pay-pal.png",
+  // },
   {
     label: "Stripe",
     value: "stripe",
@@ -100,3 +100,18 @@ export interface IProductItem {
   create_time?: string;
   [x: string]: any;
 }
+/**
+ * 订单状态的枚举：
+ * 'pending_payment' => '等待中',
+    'pending_activation' => '待激活',
+    'activated' => '已激活',
+    'expired' => '已过期',
+    'cancelled' => '已取消',
+    default => '未知',
+ */
+export type TOrderStatus =
+  | "pending_payment"
+  | "pending_activation"
+  | "activated"
+  | "cancelled"
+  | "default";

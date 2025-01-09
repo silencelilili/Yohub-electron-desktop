@@ -17,6 +17,7 @@
 </template>
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
+import { ArrowLeftBold } from "@element-plus/icons-vue";
 import { wechatLogin, getWechatQrcode } from "@/api/auth";
 const emits = defineEmits(["back"]);
 const isAuthenticated = ref(false);

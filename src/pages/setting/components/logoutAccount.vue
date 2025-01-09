@@ -1,8 +1,8 @@
 <template>
   <div class="destroy-wrap">
     <div class="border-full p-4 border-rounded-lg color-#666 file-content">
-      <h2 class="text-center">Yohub账号注销协议</h2>
-      <div>注注销是不可逆操作，请认真阅读以下重要提醒：</div>
+      <h2 class="text-center mb-4">Yohub帐号注销协议</h2>
+      <div>注销是不可逆操作，请认真阅读以下重要提醒：</div>
       <div class="my-2">
         1、注销前请确认已解约所有支付平台的连续包月服务，可查看对应解约教程完成解约。为了保障您的权益，未解约无法完成注销；
       </div>
@@ -19,15 +19,54 @@
         5、已注销账号重新注册时，无法获得该账号之前已享受过的新用户福利，包括但不限于新用户超级VIP时长赠送，邀请活动金币奖励等；
       </div>
 
-      <div><el-checkbox>已阅读并同意：Youhub帐号注销协议</el-checkbox></div>
+      <div>
+        <el-checkbox v-model="checkbox"
+          >已阅读并同意：Youhub帐号注销协议</el-checkbox
+        >
+      </div>
     </div>
 
-    <el-button type="primary" size="large" class="w-100% mt-6"
+    <el-button
+      type="danger"
+      size="large"
+      class="w-100% mt-6"
+      :disabled="!checkbox"
+      @click="handleDestroy"
       >注销账号</el-button
     >
   </div>
 </template>
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { userDestroy } from "@/api/auth";
+import { useUserStore } from "@/stores/index";
+import { useRouter } from "vue-router";
+
+const userStore = useUserStore();
+const router = useRouter();
+const checkbox = ref(false);
+const handleDestroy = () => {
+  const loading = ElLoading.service({
+    lock: true,
+    text: "正在注销",
+    background: "rgba(0, 0, 0, 0.7)",
+  });
+  // TODO: 确认注销
+  userDestroy().then(() => {
+    userStore
+      .logoutApi()
+      .then(() => {
+        setTimeout(() => {
+          loading.close();
+          router.push("/login");
+        }, 1600);
+      })
+      .catch(() => {
+        loading.close();
+        router.push("/login");
+      });
+  });
+};
+</script>
 <style lang="less" scoped>
 .destroy-wrap {
   display: flex;

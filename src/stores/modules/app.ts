@@ -1,10 +1,14 @@
 import { defineStore } from "pinia";
 interface AppState {
   activeMenu: any;
+  onlineStatus: any;
+  onlineTimes: number;
 }
 export const useAppStore = defineStore("app", {
   state: (): AppState => ({
     activeMenu: {},
+    onlineStatus: {},
+    onlineTimes: 0,
   }),
   getters: {
     /**
@@ -22,6 +26,12 @@ export const useAppStore = defineStore("app", {
      */
     async setActiveMenu(menu: any) {
       this.activeMenu = menu;
+    },
+    setOnlineStatus(status: any) {
+      this.onlineStatus = status;
+    },
+    setOnlineTimes(times: any) {
+      this.onlineTimes = times;
     },
   },
 });

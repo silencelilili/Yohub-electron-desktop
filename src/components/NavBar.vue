@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col justify-between items-center h-full bg-color">
-    <div class="h-130px flex-center justify-center nav-avatar">
-      <el-avatar :size="50" :src="circleUrl" class="mr-3" />
-      <div>{{ userInfo.user_name }}</div>
+    <div class="h-156px flex-center-col justify-center nav-avatar">
+      <el-avatar :size="50" :src="UserAvatar" />
+      <div class="mt-2">{{ userInfo.user_name }}</div>
     </div>
     <el-menu class="navbar-ul w-full flex-1">
       <el-menu-item
@@ -31,6 +31,7 @@ import { defineProps, toRefs, ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore, useUserStore } from "@/stores";
 import { ElLoading } from "element-plus";
+import UserAvatar from "@/assets/images/user-avatar.png";
 const props = defineProps({
   userInfo: {
     type: Object,
@@ -42,8 +43,6 @@ const props = defineProps({
   },
 });
 const router = useRouter();
-const circleUrl =
-  "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
 
 const { userInfo } = toRefs(props);
 const activeMenuName = ref("home");

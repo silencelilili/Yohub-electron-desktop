@@ -36,6 +36,16 @@ export function setCookie(name: string, value: string, expires?: Date): void {
   }
   document.cookie = cookieString;
 }
+export function deleteCookie(name: string): void {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+}
+export function clearCookies(): void {
+  document.cookie.split(";").forEach((cookie) => {
+    document.cookie = cookie
+      .replace(/^ +/, "")
+      .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+  });
+}
 
 /*********************************************************
  * 基础存储方法
@@ -87,7 +97,7 @@ export const connectStatus = () => {
   let _status: any | null = DEFAULT_STATUS;
   function get() {
     try {
-      const __s = localStorage.getItem("connectStatus");
+      const __s = sessionStorage.getItem("connectStatus");
       if (__s) _status = JSON.parse(__s);
       return _status;
     } catch (error) {
@@ -96,11 +106,11 @@ export const connectStatus = () => {
   }
   function set(status: any) {
     _status = status;
-    localStorage.setItem("connectStatus", JSON.stringify(status));
+    sessionStorage.setItem("connectStatus", JSON.stringify(status));
   }
   function del() {
     _status = DEFAULT_STATUS;
-    localStorage.removeItem("connectStatus");
+    sessionStorage.removeItem("connectStatus");
   }
   get();
   return {

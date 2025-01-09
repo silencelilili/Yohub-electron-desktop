@@ -1,26 +1,42 @@
 <template>
   <div class="about-wrap">
     <div class="h-70vh flex-center-col">
-      <h2>Yohub.cool</h2>
-      <p>V{{ version }}</p>
-      <el-text>
-        <el-icon><RefreshRight /></el-icon>
-        检查版本
-      </el-text>
+      <h2>Yohub.net</h2>
+      <p class="my-4">V{{ version }}</p>
+      <el-button link @click="handleCheckVersion">
+        <el-icon color="mr-2"><RefreshRight /></el-icon> 检查版本
+      </el-button>
     </div>
     <div class="">
       <p>
-        <span class="mr-10">服务协议</span>
-        <span>隐私政策</span>
+        <a
+          class="color-#3366FF cursor-pointer mr-10"
+          @click="handleOpen('services')"
+          >服务协议</a
+        >
+        <a class="color-#3366FF cursor-pointer" @click="handleOpen('privacy')"
+          >隐私政策</a
+        >
       </p>
-      <p class="color-#999">www.yohub.cool</p>
+      <p class="color-#999">www.yohub.net</p>
     </div>
+
+    <protocolsPage ref="protocolsRef" />
   </div>
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
 import { RefreshRight } from "@element-plus/icons-vue";
-const version = ref("1.0.0");
+import protocolsPage from "../protocols/index.vue";
+const version = ref("1.0.3");
+const protocolsRef = ref();
+const handleCheckVersion = () => {
+  ElMessage.success("当前已是最新版本");
+};
+
+const handleOpen = (type: string) => {
+  protocolsRef.value.open(type);
+};
 </script>
 <style lang="less" scoped>
 .about-wrap {

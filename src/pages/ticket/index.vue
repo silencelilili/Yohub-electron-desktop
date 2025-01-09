@@ -5,7 +5,7 @@
       <div class="flex-between-center mb-4">
         <h3>我的工单</h3>
         <el-button type="primary" @click="onJump('create')"
-          >创建新工单</el-button
+          ><el-icon><Plus /></el-icon> 创建新工单</el-button
         >
       </div>
 
@@ -14,13 +14,16 @@
           v-for="item in ticketList"
           :key="item.id"
           class="ticket-item flex-between-center"
+          @click="handleOpenDetail(item)"
         >
           <div class="ticket-item_title">
-            <div class="text-color">{{ item.title }}</div>
+            <div class="text-color">{{ item.title || "-" }}</div>
             <span class="secondary-color">{{ item.datetime }}</span>
           </div>
           <div class="ticket-item_button">
-            <el-button v-if="item.status === 'closed'" class="mr-6" disabled
+            <el-tag class="mr-6" effect="dark" round>{{ item.status }}</el-tag>
+
+            <!-- <el-button v-if="item.status === 'closed'" class="mr-6" disabled
               >已结单</el-button
             >
             <el-button
@@ -29,17 +32,21 @@
               class="mr-6"
               @click="handleOpenDetail(item)"
               >进行中</el-button
-            >
+            > -->
             <el-icon><ArrowRight /></el-icon>
           </div>
         </div>
+
+        <el-empty v-if="ticketList.length === 0" description="暂无工单" />
       </div>
     </div>
 
     <!-- 创建工单-表单 -->
     <div v-if="pageType === 'create'">
       <div class="mb-5 cursor-pointer">
-        <el-icon @click="onJump('list')"><ArrowLeft /></el-icon> 创建工单
+        <el-button link @click="onJump('list')"
+          ><el-icon><ArrowLeft /></el-icon> 创建工单</el-button
+        >
       </div>
       <el-form
         ref="formRef"
@@ -48,14 +55,40 @@
         label-width="auto"
         class="m-10"
       >
-        <el-form-item label="主题" prop="title">
+        <el-form-item
+          label="主题"
+          prop="title"
+          :rules="[
+            {
+              required: true,
+              message: '请输入工单主题',
+              trigger: 'blur',
+            },
+            {
+              min: 5,
+              max: 50,
+              message: '请输入5-50个字符',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-input
             v-model="ticketForm.title"
             autocomplete="off"
             placeholder="请输入工单主题"
           />
         </el-form-item>
-        <el-form-item label="类型" prop="type">
+        <el-form-item
+          label="类型"
+          prop="type"
+          :rules="[
+            {
+              required: true,
+              message: '请选择工单类型',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-select v-model="ticketForm.type" placeholder="请选择">
             <el-option label="使用" value="howto"></el-option>
             <el-option label="财务" value="billing"></el-option>
@@ -63,7 +96,19 @@
             <el-option label="其他" value="other"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="内容" prop="comment" label-position="top">
+        <el-form-item
+          label="内容"
+          prop="comment"
+          label-position="top"
+          :rules="[
+            {
+              min: 5,
+              max: 1000,
+              message: '请输入5-1000个字符',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-input
             v-model.number="ticketForm.comment"
             type="textarea"
@@ -90,20 +135,67 @@
     </div>
 
     <!-- 工单详情 -->
-    <div v-if="pageType === 'detail'">
+    <div v-if="pageType === 'detail'" class="ticket-detail">
       <div class="mb-5">
-        <span class=" cursor-pointer" @click="onJump('list')"><el-icon><ArrowLeft /></el-icon> 工单详情</span>
+        <el-button link @click="onJump('list')"
+          ><el-icon><ArrowLeft /></el-icon> 工单详情</el-button
+        >
       </div>
-       <div>
-        <h3>{{ ticketDetailData.title }}</h3>
-        <div>{{ ticketDetailData.comment }}</div>
+      <div class="p-6 ticket-detail-content bg-color2">
+        <h3 class="my-4 flex justify-between">
+          <span>{{ ticketDetailData.title }}</span>
+          <el-tag class="mr-6" effect="dark" round>{{
+            ticketDetailData.status
+          }}</el-tag>
+        </h3>
+        <div>
+          <!-- v-for="(item, index) in ticketDetailData.content" :key="index" -->
+          <p>
+            <el-text>{{ ticketDetailData.comment }}</el-text>
+          </p>
+        </div>
+        <div class="text-right">
+          <el-text type="info" class="my-2">
+            {{ ticketDetailData.datetime }}
+          </el-text>
+          <br />
+          <el-text type="primary"> {{ ticketDetailData.type }}问题 </el-text>
+        </div>
+      </div>
+
+      <!-- 回复 -->
+      <div class="p-6 ticket-detail-content bg-color2">
+        <div class="text-right">
+          <el-button plain type="primary"
+            ><el-icon><Plus /></el-icon> 回复</el-button
+          >
+        </div>
+        <div class="mt-4">
+          <template
+            v-for="(item, index) in ticketDetailData.content"
+            :key="index"
+          >
+            <div
+              v-if="index > 0"
+              class="flex justify-between items-center border-bottom mb-5 pb-3"
+            >
+              <p class="flex-1">
+                <el-text>{{ item?.comment || "-" }}</el-text>
+              </p>
+              <el-text type="info" class="my-2">
+                {{ item.commenter_name }} 回复于
+                {{ item.datetime }}
+              </el-text>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </el-card>
 </template>
 <script lang="ts" setup>
 import { getTicketList, createTicket, getTicketDetail } from "@/api/ticket";
-import { ArrowRight, ArrowLeft } from "@element-plus/icons-vue";
+import { ArrowRight, ArrowLeft, Plus } from "@element-plus/icons-vue";
 import { reactive, ref } from "vue";
 
 type PageType = "list" | "detail" | "create";
@@ -128,9 +220,9 @@ const _getTicketList = async () => {
 // 创建工单表单----------
 const formRef = ref();
 const ticketForm = reactive({
- title: '',
-  type: '',
-  comment: '',
+  title: "",
+  type: "",
+  comment: "",
 });
 const submitForm = (formEl: any) => {
   if (!formEl) return;
@@ -138,8 +230,8 @@ const submitForm = (formEl: any) => {
     if (valid) {
       // onSubmit();
       await createTicket(ticketForm);
-      ElMessage.success('创建工单成功');
-      onJump('list');
+      ElMessage.success("创建工单成功");
+      onJump("list");
       _getTicketList();
     } else {
       return false;
@@ -153,28 +245,37 @@ const resetForm = (formEl: any) => {
 
 // 工单详情----------
 const ticketDetailData = ref({
-  title: '',
-  content: '',
-  comment: '',
-  datetime: '',
+  title: "",
+  content: [],
+  comment: "",
+  datetime: "",
 });
 const handleOpenDetail = async (item: any) => {
   try {
     const res = await getTicketDetail({ id: item.id });
-    ticketDetailData.value = res.data;
-    const _content = res?.data?.content.map((i) => i.comment).join('<br/>') || '';
-    ticketDetailData.value.comment = _content;
-    pageType.value = 'detail';
+    const _data = res.data || {};
+    ticketDetailData.value = _data;
+    ticketDetailData.value.comment = _data?.content[0]?.comment || "-";
+    pageType.value = "detail";
   } catch (error) {
     console.log(error);
   }
 };
 </script>
 <style lang="less" scoped>
-.ticket-item {
-  border: 1px solid var(--el-border-color);
-  padding: 16px;
-  margin-bottom: 16px;
-  border-radius: 12px;
+.ticket-list {
+  .ticket-item {
+    border: 1px solid var(--el-border-color);
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+}
+.ticket-detail {
+  .ticket-detail-content {
+    margin-top: 16px;
+    border-radius: 12px;
+  }
 }
 </style>

@@ -17,6 +17,9 @@ dependencies:
   axios:
     specifier: ^1.7.8
     version: 1.7.8
+  dayjs:
+    specifier: ^1.11.13
+    version: 1.11.13
   dragula:
     specifier: ^3.7.3
     version: 3.7.3

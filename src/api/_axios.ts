@@ -42,8 +42,16 @@ export class Request {
     );
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
-        // console.log("响应拦截器", response.headers["set-cookie"]);
-        return response.data;
+        const { data } = response;
+        if (response.status == 302) {
+          console.log("302跳转", response.headers.location);
+        }
+        if (data.ret == 1) {
+          return data;
+        } else {
+          if (data.msg) ElMessage.error(data.msg);
+          return Promise.reject(data);
+        }
       },
       (error: AxiosError) => {
         return Promise.reject(error.response);

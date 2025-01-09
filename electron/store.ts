@@ -39,13 +39,12 @@ export class StoreService {
 const store = new Store({ name: "yohub-store" });
 
 const setStore = (_event: any, { key = "", value = null }): void => {
-  console.log("[store] setStore=====>", key, value);
+  // console.log("[store] setStore=====>", key, value);
   store.set(key, value);
 };
 const getStore = (_event: any, key = "") => {
   const _res = store.get(key);
   _event.returnVale = _res || "";
-  console.log("[store] getStore=====>", _res);
   return _res;
 };
 const hasStore = (_event: any, key = ""): boolean => {

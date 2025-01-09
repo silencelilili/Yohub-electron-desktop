@@ -14,6 +14,7 @@ import ProtocolService from "./protocol";
 import { setupMenu } from "./menu";
 import { setupTray } from "./tray";
 import useCookie from "./useCookie";
+import { quitApp } from "./utils";
 
 // The built directory structure
 
@@ -77,6 +78,6 @@ app.whenReady().then(() => {
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    app.quit();
+    quitApp();
   }
 });

@@ -39,37 +39,110 @@ export enum subscriptionStatusEnum {
 export const ModeList = {
   policy: {
     key: "policy",
-    value: false,
-    name: "策略模式",
-    desc: "仅加速常见APP和网页访问",
+    value: true,
+    name: "影音模式",
+    desc: "加速主流流媒体服务",
   },
   global: {
     key: "global",
     value: false,
-    name: "全局模式",
-    desc: "加速全部流量",
+    name: "游戏模式",
+    desc: "加速流行的网络游戏服务",
+  },
+};
+
+// 节点类型
+enum NodeClass {
+  /** 免费线路 */
+  FREE = 0,
+  /** 高速专线 */
+  SPECIAL = 1,
+  /** 游戏专线 */
+  GAMES = 2,
+}
+// 节点组别
+export enum NodeGroup {
+  /** 0 中国大陆 */
+  "中国大陆",
+  /** 1 中国香港 */
+  "中国香港",
+  /** 2 美国 */
+  "美国",
+}
+
+const DEFAULT_GROUPS = {
+  [NodeGroup["中国大陆"]]: {
+    name: "中国大陆",
+    value: NodeGroup["中国大陆"],
+    nodes: [],
+    checked: false,
+    disabled: true,
+  },
+  [NodeGroup["中国香港"]]: {
+    name: "中国香港",
+    value: NodeGroup["中国香港"],
+    nodes: [],
+    checked: false,
+    disabled: true,
+  },
+  [NodeGroup["美国"]]: {
+    name: "美国",
+    value: NodeGroup["美国"],
+    nodes: [],
+    checked: false,
+    disabled: true,
+  },
+};
+
+export const NodesMap = {
+  [NodeClass.FREE]: {
+    name: "免费线路",
+    desc: "免费线路，仅支持中国大陆地区",
+    value: "free",
+    groups: {
+      ...DEFAULT_GROUPS,
+    },
+    nodes: [],
+  },
+  [NodeClass.SPECIAL]: {
+    name: "高速专线",
+    desc: "备用线路，仅支持中国大陆地区",
+    value: "special",
+    groups: {
+      ...DEFAULT_GROUPS,
+    },
+    nodes: [],
+  },
+  [NodeClass.GAMES]: {
+    name: "游戏专线",
+    desc: "备用线路，仅支持中国大陆地区",
+    value: "games",
+    groups: {
+      ...DEFAULT_GROUPS,
+    },
+    nodes: [],
   },
 };
 
 export const LineList = [
   {
-    label: "免费线路",
+    name: "免费线路",
     value: "free",
     type: "group",
     children: [
       {
-        label: "中国",
+        name: "中国",
         desc: "免费线路，仅支持中国大陆地区",
         value: "free",
         children: [
           {
-            label: "中国1",
+            name: "中国1",
             desc: "免费线路，仅支持中国大陆地区",
             value: "free",
             speed: 100,
           },
           {
-            label: "中国2",
+            name: "中国2",
             desc: "备用线路，仅支持中国大陆地区",
             value: "free2",
             speed: 100,
@@ -77,43 +150,43 @@ export const LineList = [
         ],
       },
       {
-        label: "美国",
+        name: "美国",
         desc: "备用线路，仅支持中国大陆地区",
         value: "free2",
       },
     ],
   },
   {
-    label: "高速专线",
+    name: "高速专线",
     desc: "备用线路，仅支持中国大陆地区",
     value: "free2",
     type: "group",
     children: [
       {
-        label: "中国",
+        name: "中国",
         desc: "免费线路，仅支持中国大陆地区",
         value: "free",
       },
       {
-        label: "美国",
+        name: "美国",
         desc: "备用线路，仅支持中国大陆地区",
         value: "free2",
       },
     ],
   },
   {
-    label: "游戏专线",
+    name: "游戏专线",
     desc: "备用线路，仅支持中国大陆地区",
     value: "free2",
     type: "group",
     children: [
       {
-        label: "中国",
+        name: "中国",
         desc: "免费线路，仅支持中国大陆地区",
         value: "free",
       },
       {
-        label: "美国",
+        name: "美国",
         desc: "备用线路，仅支持中国大陆地区",
         value: "free2",
       },

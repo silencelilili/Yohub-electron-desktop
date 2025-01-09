@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { app, contextBridge, ipcRenderer } from "electron";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", withPrototype(ipcRenderer));
@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld("$Yohub", {
     ipcRenderer.invoke("desktop:service", { type, data }),
   $store: (type: string, data: any) =>
     ipcRenderer.invoke("store:store", type, data),
+  $platform: process.platform,
 });
 
 // --------- Preload scripts loading 页面过渡效果 ---------

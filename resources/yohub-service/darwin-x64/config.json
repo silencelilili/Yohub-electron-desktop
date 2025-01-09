@@ -1,0 +1,183 @@
+{
+  "log": {
+    "access": "",
+    "error": "",
+    "loglevel": ""
+  },
+  "inbounds": [
+    {
+      "tag": "api",
+      "port": 10813,
+      "listen": "127.0.0.1",
+      "protocol": "dokodemo-door",
+      "settings": {
+        "udp": false,
+        "address": "127.0.0.1",
+        "allowTransparent": false
+      }
+    },
+    {
+      "tag": "socks",
+      "port": 10808,
+      "listen": "0.0.0.0",
+      "protocol": "socks",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ],
+        "routeOnly": false
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "allowTransparent": false
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "vmess",
+      "settings": {
+        "vnext": [
+          {
+            "address": "node1.yohub.cloud",
+            "port": 443,
+            "users": [
+              {
+                "id": "69a556f1-6370-4d11-a2a8-19ed56fc693c",
+                "alterId": 0,
+                "email": "t@t.tt",
+                "security": "auto"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "allowInsecure": true,
+          "serverName": "node1.yohub.cloud"
+        },
+        "wsSettings": {
+          "path": "/v2ray",
+          "headers": {
+            "Host": "node1.yohub.cloud"
+          }
+        }
+      },
+      "mux": {
+        "enabled": false,
+        "concurrency": -1
+      }
+    },
+    {
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIP" 
+      },
+      "streamSettings": {},
+      "tag": "direct"
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      }
+    },
+    {
+        "tag": "dns-out",
+        "protocol": "dns",
+        "settings": {
+            "domainStrategy": "UseIP"
+        }
+    }
+  ],
+  "stats": {},
+  "api": {
+    "tag": "api",
+    "services": [
+      "StatsService"
+    ]
+  },
+  "policy": {
+    "system": {
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
+    }
+  },
+  "dns": {
+    "hosts": {
+      "dns.google": "8.8.8.8",
+      "proxy.example.com": "127.0.0.1",
+      "node1.yohub.com":"8.217.20.98"
+    },
+    "servers": [
+      "8.8.8.8",
+      {
+        "address": "223.5.5.5",
+        "domains": [
+	  "node1.yohub.com",
+          "www.baidu.com"
+        ],
+        "port": 53
+      }
+      //"https://dns.google/dns-query"
+    ]
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+         "inboundTag": ["socks"],
+         "network":"udp",
+	 "port":53,
+         "outboundTag": "proxy"
+      },
+      {
+        "type": "field",
+        "ip": [
+		"192.168.100.33",
+		"223.5.5.5",
+                "8.8.8.8"
+		],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api"
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geosite:cn",
+	  "geosite:geolocation-cn"
+        ]
+      },
+      {
+        "type": "field",
+        "port": "443",
+        "network": "udp",
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "port": "0-65535",
+        "outboundTag": "proxy"
+      }
+    ],
+    "strategy": "rules"
+  }
+}

@@ -14,7 +14,14 @@ export const getProductList = () => {
  *  coupon: 优惠码
  *  product_id: 商品id
  * }
+ * @returns {
+ *  ret: 1,
+ *  msg: "优惠码可用",
+ *  discount: "优惠价格",
+ *  buy_price: "购买价格"
+ * }
  */
+
 export const checkCoupon = (params: {
   coupon: string;
   product_id: string | number;
@@ -26,7 +33,16 @@ export const checkCoupon = (params: {
  * 获取订单列表(OK)
  */
 export const getOrderList = () => {
-  return request.post("/user/order/ajax", {});
+  return request.post("/user/order/list", {});
+};
+
+/**
+ * 订单详情
+ * @param params
+ * @returns
+ */
+export const getOrderDetail = (id: string | number) => {
+  return request.post("/user/order/detail", { id });
 };
 
 /**
@@ -78,11 +94,35 @@ export const getAlipayQrcode = (data: {
 };
 
 /**
- * 查询支付的状态
+ * 支付宝 查询支付的状态
  * @param pid: 支付id
  */
 export const getAlipayStatus = (pid: string | number) => {
   const formData = new FormData();
   formData.append("pid", String(pid));
   return request.post("/payment/status/f2f", formData);
+};
+
+/**
+ * Stripe支付
+ */
+export interface IStripeParams {
+  /** 订单id */
+  invoice_id: string | number;
+  /** 订单金额 */
+  price: string | number;
+  /**8位订单随机码（例如：cd21f237，每次点支付随机生成）*/
+  pid: string | number;
+}
+export const stripePayment = (data: IStripeParams) => {
+  return request.post("/user/payment/purchase/stripe", data);
+};
+/**
+ * Stripe查询订单支付状态
+ * @param data { pid: 支付id }
+ */
+export const getStripeStatus = (pid: string | number) => {
+  const formData = new FormData();
+  formData.append("pid", String(pid));
+  return request.post("/payment/status/stripe", formData);
 };

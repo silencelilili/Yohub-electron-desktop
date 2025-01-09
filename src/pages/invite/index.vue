@@ -2,7 +2,9 @@
   <el-card shadow="never" class="m-4 h-100%">
     <div class="flex-between-center mb-4">
       <h3>推荐返利</h3>
-      <el-icon @click="handleClose"><Close /></el-icon>
+      <el-button link @click="handleClose"
+        ><el-icon><Close /></el-icon
+      ></el-button>
     </div>
 
     <div>
@@ -11,11 +13,11 @@
         <h3>我的奖励</h3>
         <div>
           <div>您已邀请注册</div>
-          <h3 class="theme-color">3人</h3>
+          <h3 class="theme-color">{{ inviteInfoData.nums }}人</h3>
         </div>
         <div>
           <div>总返利金额</div>
-          <h3 class="theme-color">￥0.00</h3>
+          <h3 class="theme-color">￥{{ inviteInfoData.paybacks_sum }}</h3>
         </div>
       </div>
 
@@ -39,12 +41,20 @@
 <script lang="ts" setup>
 import { useUserStore } from "@/stores/index";
 import { Close } from "@element-plus/icons-vue";
-import { computed } from "vue";
+import { onMounted, computed, ref } from "vue";
 import { useRouter } from "vue-router";
+import { getInviteInfo } from "@/api/user";
 
 const router = useRouter();
 const userStore = useUserStore();
+const inviteInfoData = ref({
+  nums: 0,
+  paybacks_sum: 0,
+});
 
+onMounted(() => {
+  _getInviteInfoApi();
+});
 // 邀请链接
 const inviteLink = computed(() => {
   const _base = import.meta.env.VITE_BASE_DOMAIN;
@@ -57,6 +67,13 @@ const handleCopy = () => {
   ElMessage.success("复制成功");
 };
 
+// 获取邀请信息
+const _getInviteInfoApi = () => {
+  getInviteInfo().then((res) => {
+    const _data = res.data;
+    inviteInfoData.value = _data;
+  });
+};
 // 关闭当前页面
 const handleClose = () => {
   router.go(-1);
