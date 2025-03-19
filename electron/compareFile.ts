@@ -33,6 +33,15 @@ function calculateMD5(filePath: string): Promise<string> {
   });
 }
 
+function calculateStreamMD5(text: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash("md5");
+    const stream = text;
+    hash.update(stream);
+    resolve(hash.digest("hex"));
+  });
+}
+
 /**
  * 2. 比较两个文件的 MD5 值
  * @param file1 旧文件
@@ -46,15 +55,14 @@ async function compareFiles(
 ): Promise<void> {
   try {
     const md5File1 = await calculateMD5(file1);
-    const md5File2 = await calculateMD5(file2);
-
+    const md5File2 = await calculateStreamMD5(file2);
     if (md5File1 === md5File2) {
       console.log("文件内容一致，无需更新。");
       callback(true);
     } else {
       console.log("文件内容不一致，需要更新。");
       callback(false);
-      updateFile(file1, file2);
+      // updateFile(file1, file2);
     }
   } catch (error) {
     console.error("计算 MD5 时出错:", error);
@@ -68,7 +76,8 @@ async function compareFiles(
  * @desc 如果文件内容不一致，可以替换旧文件为新文件
  */
 function updateFile(sourceFile: string, targetFile: string): void {
-  fs.copyFile(sourceFile, targetFile, (err) => {
+        // fs.copyFile
+  fs.writeFileSync(sourceFile, targetFile, (err) => {
     if (err) {
       console.error("文件更新失败:", err);
     } else {

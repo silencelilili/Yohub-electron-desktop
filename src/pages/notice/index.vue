@@ -8,11 +8,12 @@
       ></el-button>
     </div>
 
-    <div>
+    <div class="message-box">
       <div
-        class="message-item mb-4 p-4 bg-color2"
+        class="message-item mb-4 p-4 bg-color2 cursor-pointer"
         v-for="item in noticeContentList"
         :key="item.id"
+        @click="handleOpenDetail(item)"
       >
         <div class="flex-center justify-between mb-4">
           <el-text tag="b">系统消息</el-text>
@@ -22,6 +23,11 @@
         <div></div>
       </div>
     </div>
+
+    <!-- 订单详情 -->
+    <el-dialog v-model="dialogVisible" title="系统消息" width="50%">
+      <div v-html="detailData.content"></div>
+    </el-dialog>
   </el-card>
 </template>
 <script lang="ts" setup>
@@ -46,5 +52,17 @@ const _getNoticeContentApi = () => {
     noticeContentList.value = res?.data || [];
   });
 };
+
+const dialogVisible = ref(false)
+const detailData = ref()
+const handleOpenDetail = (item: any) => {
+  dialogVisible.value = true
+  detailData.value = item
+}
 </script>
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.message-box{
+  overflow: auto;
+  height: calc(100vh - 136px);
+}
+</style>

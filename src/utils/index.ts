@@ -2,9 +2,9 @@ export function convertByte(byteValue: number) {
   const kbValue = byteValue / 1024;
   if (kbValue >= 1024) {
     const mbValue = kbValue / 1024;
-    return `${mbValue.toFixed(2)}mb/s`;
+    return `${mbValue.toFixed(2)}Mbps`;
   }
-  return `${kbValue.toFixed(2)}kb/s`;
+  return `${kbValue.toFixed(2)}kbps`;
 }
 /**
  * 格式化流量单位，默认为（B）
@@ -167,3 +167,32 @@ export function checkPasswordStrength(password: string) {
   }
   return result;
 }
+/**
+ * 从传入的url 中获取指定key的value
+ * @param {*} key 要获取的 key
+ * @returns window.location.href 中指定key对应的value
+ */
+export function getUrlParam(url: string, key: string) {
+  url = url.replace(/^[^?]*\?/, "");
+  const regexp = new RegExp(`(^|&)${key}=([^&#]*)(&|$|)`, "i");
+  const paramMatch = url.match(regexp);
+
+  return paramMatch ? paramMatch[2] : null;
+}
+export const downloadByUrl = (url: string, fileName = "") => {
+  if (!fileName) {
+    fileName = url.substring(url.lastIndexOf("/") + 1);
+  }
+  // 创建一个<a>标签
+  const element = document.createElement("a");
+  // 设置href属性为下载链接
+  element.setAttribute("href", url);
+  // 设置download属性为文件名
+  element.setAttribute("download", fileName);
+  // 将<a>标签添加到DOM中
+  document.body.appendChild(element);
+  // 模拟点击<a>标签开始下载
+  element.click();
+  // 从DOM中移除<a>标签
+  document.body.removeChild(element);
+};

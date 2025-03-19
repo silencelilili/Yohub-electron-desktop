@@ -1,4 +1,6 @@
 import request from "./index";
+import axiosRequest from "./_axios";
+
 // import request from "./_fetch";
 /**
  * 可购买商品列表
@@ -50,13 +52,33 @@ export const getOrderDetail = (id: string | number) => {
  * {
  *  coupon?: 优惠码
  *  product_id: 商品id
+ *  pay_type: 支付方式
  * }
  */
 export const createOrder = (params: {
-  product_id: string | number;
+  product_id: string | number | null;
+  pay_type: string;
   coupon?: string;
 }) => {
   return request.post("/user/order/create", params);
+};
+
+/**
+ * 取消订单
+ * @returns
+ */
+export const cancelOrder = (params: {
+  /** 订单id */
+  id: string | number;
+}) => {
+  return request.post("/user/order/cancel", params);
+};
+
+/**
+ * 获取支付方式
+ */
+export const getBilling = () => {
+  return request.post("/user/setting/billing/getBilling", {});
 };
 
 /**
@@ -100,7 +122,7 @@ export const getAlipayQrcode = (data: {
 export const getAlipayStatus = (pid: string | number) => {
   const formData = new FormData();
   formData.append("pid", String(pid));
-  return request.post("/payment/status/f2f", formData);
+  return axiosRequest.post("/payment/status/f2f", formData);
 };
 
 /**
@@ -113,6 +135,8 @@ export interface IStripeParams {
   price: string | number;
   /**8位订单随机码（例如：cd21f237，每次点支付随机生成）*/
   pid: string | number;
+  /** 回调地址-返回地址完整路径 */
+  success_url?: string;
 }
 export const stripePayment = (data: IStripeParams) => {
   return request.post("/user/payment/purchase/stripe", data);
@@ -124,5 +148,5 @@ export const stripePayment = (data: IStripeParams) => {
 export const getStripeStatus = (pid: string | number) => {
   const formData = new FormData();
   formData.append("pid", String(pid));
-  return request.post("/payment/status/stripe", formData);
+  return axiosRequest.post("/payment/status/stripe", formData);
 };

@@ -3,9 +3,10 @@
     <ul v-if="pageType === 'view'" class="nav-ul p-4">
       <li class="nav-li li-item">
         <span>头像</span>
-        <span class="flex-center" @click="handleEdit('user_avatar')">
+        <!--  @click="handleEdit('user_avatar')" -->
+        <span class="flex-center">
           <el-avatar :size="36" :src="UserAvatar" class="mr-3" />
-          <el-icon><ArrowRight /></el-icon>
+          <!-- <el-icon><ArrowRight /></el-icon> -->
         </span>
       </li>
       <li class="nav-li li-item">

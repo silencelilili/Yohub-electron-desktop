@@ -7,5 +7,8 @@
 /// <reference types="vite/client" />
 declare module "dragula";
 declare global {
-  interface Window {}
+  interface Window {
+    $Yohub: any;
+    $log: any;
+  }
 }

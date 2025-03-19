@@ -13,6 +13,7 @@ import {
   handleOnWebRequest,
   handleOpenWindow,
   startDevToolsIfNeed,
+  isMac,
 } from "./utils";
 import { YohubEventBus } from "./event-bus";
 
@@ -31,9 +32,11 @@ export function createWindow() {
     frame: false,
     titleBarStyle: "hiddenInset",
     resizable: false,
+    backgroundColor: "#F3F5F7",
     webPreferences: {
       preload: getPreloadPath(),
       nodeIntegration: true,
+      webviewTag: true
       // webSecurity: false,
     },
   });

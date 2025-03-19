@@ -1,14 +1,21 @@
+import { setSessionStorage } from "@/utils/yohub.store";
 import { defineStore } from "pinia";
 interface AppState {
   activeMenu: any;
   onlineStatus: any;
   onlineTimes: number;
+  linesList: any;
+  currentLine: any;
+  linesSpeedMap: any;
 }
 export const useAppStore = defineStore("app", {
   state: (): AppState => ({
     activeMenu: {},
     onlineStatus: {},
     onlineTimes: 0,
+    linesList: [],
+    currentLine: {},
+    linesSpeedMap: {},
   }),
   getters: {
     /**
@@ -32,6 +39,17 @@ export const useAppStore = defineStore("app", {
     },
     setOnlineTimes(times: any) {
       this.onlineTimes = times;
+    },
+    setLinesList(linesList: any) {
+      setSessionStorage("linesList", linesList);
+      this.linesList = linesList;
+    },
+    setCurrentLine(line: any) {
+      setSessionStorage("currentLine", line);
+      this.currentLine = line;
+    },
+    setLinesSpeed(lines: any) {
+      this.linesSpeedMap = lines;
     },
   },
 });

@@ -8,24 +8,24 @@ import { useUserStore } from "@/stores";
  * @return {*}
  */
 export function useSubConfig() {
-  const subConfig = ref(null);
+  // const subConfig = ref(null);
   const loading = ref(false);
   // const _key = getCookie("key") || "";
   const userStore = useUserStore();
   const userInfo = computed(() => userStore.userInfo);
-  const getConfig = async (type: SubType) => {
+  const getConfig = async (type: "pro" | "glo") => {
     loading.value = true;
     if (userInfo.value?.linkUrl) {
-      fetch(userInfo.value.linkUrl + "/" + type)
-        .then((res) => res.json())
+      fetch(userInfo.value.linkUrl + "/json/" + type)
+        .then((res) => res.text())
         .then((data) => {
-          console.log("subConfig data", data);
-          writeConfig(data);
-          subConfig.value = data || null;
+          const _type = type === "glo" ? "global" : "proxy";
+          writeConfig(data, _type);
+          // subConfig.value = data || null;
           loading.value = false;
         });
     } else {
-      subConfig.value = null;
+      // subConfig.value = null;
       loading.value = false;
     }
     // const res = await getConfigSub(_key, type);
@@ -33,7 +33,7 @@ export function useSubConfig() {
     // loading.value = false;
   };
   return {
-    subConfig,
+    // subConfig,
     loading,
     getConfig,
   };

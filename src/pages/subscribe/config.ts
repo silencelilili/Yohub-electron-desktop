@@ -63,11 +63,13 @@ export const paymentOptions = [
   {
     label: "微信支付",
     value: "wechat",
+    key: "wechat",
     icon: "pay-wechat.png",
   },
   {
     label: "支付宝",
     value: "alipay",
+    key: "f2f",
     icon: "pay-ali.png",
   },
   // {
@@ -78,15 +80,46 @@ export const paymentOptions = [
   {
     label: "Stripe",
     value: "stripe",
+    key: "stripe",
     icon: "pay-stripe.png",
   },
   {
     label: "余额支付",
     value: "balance",
+    key: "banner",
     icon: "pay-balance.png",
   },
 ];
-
+export const paymentOptionsMap = {
+  wechat: {
+    label: "微信支付",
+    value: "wechat",
+    key: "wechat",
+    icon: "pay-wechat.png",
+    img: new URL(`@/assets/images/pay-wechat.png`, import.meta.url).href,
+  },
+  f2f: {
+    label: "支付宝",
+    value: "alipay",
+    key: "f2f",
+    icon: "pay-ali.png",
+    img: new URL(`@/assets/images/pay-ali.png`, import.meta.url).href,
+  },
+  stripe: {
+    label: "Stripe",
+    value: "stripe",
+    key: "stripe",
+    icon: "pay-stripe.png",
+    img: new URL(`@/assets/images/pay-stripe.png`, import.meta.url).href,
+  },
+  balance: {
+    label: "余额支付",
+    value: "balance",
+    key: "banner",
+    icon: "pay-balance.png",
+    img: new URL(`@/assets/images/pay-balance.png`, import.meta.url).href,
+  },
+};
 export interface IProductItem {
   id: number | null;
   name: string;

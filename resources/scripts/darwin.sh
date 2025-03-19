@@ -11,13 +11,13 @@ for address in "$@"; do
     # 使用 ping 测量延迟
     # echo "正在探测 $address ..."
     # 获取延迟信息并提取平均延迟
-    result=$(ping -c 3 "$address" | tail -n 1 | awk -F '/' '{print $5}')
+    result=$(ping -c 2 "$address" | tail -n 1 | awk -F '/' '{print $5}')
     
     if [ -z "$result" ]; then
         # echo "{\"error\": \"无法测量延迟\"},"
-        echo "$address:_:0 ms"
+        echo "$address:_:0"
     else
-        echo "$address:_:$result ms"
-        # echo "{\"host\": \"$address\", \"latency\": \"$result ms\"},"
+        echo "$address:_:$result"
+        # echo "{\"host\": \"$address\", \"latency\": \"$result\"},"
     fi
 done

@@ -74,6 +74,7 @@ function registerStringProtocol(session: Electron.Session) {
 }
 
 export default {
+  PROTOCOL_URL,
   setDefaultProtocol,
   watchMacProtocol,
   watchWindowProtocol,

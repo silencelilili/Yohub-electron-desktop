@@ -1,87 +1,99 @@
 <template>
    <div class="line-wrap">
-    <div v-for="(item, key) in nodesList" :key="key">
-        <template v-if="item.nodes.length">
-          <div class="color-#3366FF mb-4" style="font-size: 16px">
-            {{ item.name }}
+    <el-collapse v-model="activeNames" @change="handleChangeCollapse">
+      <el-collapse-item
+        v-for="(line, pindex) in nodesList"
+        :key="pindex"
+        :name="line.label"
+        class="line-item bg-color2"
+      >
+        <template #title>
+          <div class="flex flex-1 justify-between items-center">
+            <span>{{ line.label }} </span>
+            <span class="flex items-center gap-2 mr-2">
+              <!-- <el-checkbox
+              v-model="line.checked"
+              label="自动选择"
+              size="large"
+              :disabled="line.disabled"
+            /> -->
+            <el-icon v-if="line.checking" class="is-loading">
+              <Loading />
+            </el-icon>
+            <svg-icon v-else name="check-speed" @click.stop="handleCheckSpeedNode(line)"></svg-icon>
+          </span>
           </div>
-          <el-collapse v-model="activeNames" @change="handleChangeCollapse">
-            <el-collapse-item
-              v-for="(group, groupKey) in item.groups"
-              :key="groupKey"
-              class="line-item bg-color2"
-            >
-              <template #title>
-                <div class="flex flex-1 justify-between items-center">
-                  <span>{{ group.name }} </span>
-                  <span class="flex items-center gap-2 mr-2"><el-checkbox
-                    v-model="group.checked"
-                    label="自动选择"
-                    size="large"
-                    :disabled="group.disabled"
-                  />
-                  <el-icon v-if="nodeChecking" class="is-loading">
-                    <Loading />
-                  </el-icon>
-                  <svg-icon v-else name="check-speed" @click.stop="handleCheckSpeedNode(group, groupKey)"></svg-icon>
-                </span>
-                </div>
-              </template>
-              <div>
-                <div
-                  v-for="(node, index) in group.nodes"
-                  :key="node.id"
-                  :class="['flex justify-between items-center my-3 p-3 last-line-item', {
-                    'active-node-item': activeNode.id === node.id,
-                  }]"
-                  @click="handleNodeClick(node, index)"
-                >
-                  <span>{{ node.name }} </span>
-                  <span>
-                    <svg-icon
-                      name="network"
-                      :style="{ color: node.color, fontSize: '18px' }"
-                    ></svg-icon>
-                    {{ node.latency }}</span
-                  >
-                </div>
-              </div>
-            </el-collapse-item>
-          </el-collapse>
-          <!-- <div
-          class="line-item flex justify-between items-center"
-          v-for="child in item.children"
-          :key="child.value"
-        >
-          <div class="flex flex-col flex-1">
-            <span>{{ child.label }}</span>
-          </div>
-          <el-checkbox v-model="currentLine" label="" size="large" />
-        </div> -->
         </template>
-      </div>
+        <div>
+          <div
+            v-for="node in line.children"
+            :key="node.id"
+            :class="['flex justify-between items-center my-3 p-3 last-line-item', {
+              'active-node-item': activeNode.id === node.id,
+            }]"
+            @click="handleNodeClick(node, pindex)"
+          >
+            <span>{{ node.line }} </span>
+            <span v-if="node.type!=='auto'" class="flex items-center">
+         
+              <wifi-signal class="mr-1" :delay="linesSpeedObj[node.id].delay" />
+              {{ linesSpeedObj[node.id].delay }}ms</span
+            >
+          </div>
+        </div>
+      </el-collapse-item>
+    </el-collapse>
   </div>
 </template>
 <script lang="ts" setup>
-import { getNodesList } from "@/api/user";
-import { useUserStore } from "@/stores/index";
-import { computed, defineEmits, defineExpose, onMounted, ref } from "vue";
-import { NodesMap } from "./config";
-import { pingAddress } from "@/utils/yohub.desktop";
+// import { getNodesList } from "@/api/user";
+import { useAppStore, useUserStore } from "@/stores/index";
+import { computed, defineEmits, defineExpose, defineProps, onMounted, ref, watch } from "vue";
+import { NodesMap, currentLineList } from "./config";
+// import { newPingAddress, pingAddress } from "@/utils/yohub.desktop";
 import { Loading } from "@element-plus/icons-vue";
+import WifiSignal from '@/components/WifiSignal.vue'
+import useLinesHook from "@/hooks/useLines";
+const useLines = useLinesHook()
 
 const emits = defineEmits(["change"]);
-
+const props = defineProps({
+  // 节点列表
+  data: {
+    type: Array,
+    default: () => [],
+  },
+  current: {
+    type: Object,
+    default: () => {},
+  }
+});
 const userInfo = computed(() => useUserStore().userInfo);
 const userIsVip = computed(() => {
    return userInfo.value && userInfo.value?.class !== 0
 });
-const activeNode = ref({
-  id: 0
+const appStore = useAppStore()
+const linesSpeedObj = computed(() => {
+  return appStore.linesSpeedMap || {}
 })
+const activeNode = ref<any>()
 onMounted(() => {
+  setData(props.data)
+  activeNode.value = props.current
+  activeNames.value  = [activeNode.value.parentName]
 })
 
+watch(() => props.current, (val: any) => {
+  activeNode.value = val
+  activeNames.value  = [val.parentName]
+
+},
+  { deep: true })
+watch(() => props.data, (newVal) => {
+  setData(newVal, false)
+}, {
+  deep: true
+})
 // 折叠面板切换
 const activeNames = ref();
 const handleChangeCollapse = (val: any) => {
@@ -89,19 +101,22 @@ const handleChangeCollapse = (val: any) => {
 }
 //  线路列表
 const nodesList = ref();
-// 获取链路列表
-const _getNodesListApi = () => {
-  getNodesList().then((res: any) => {
-    const data = res.data;
-    setData(data);
-  });
-};
-const setData = (data: any) => {
+const setData = (data: any, isCheck = true) => {
+  if(data.length) {
+    nodesList.value = data;
+    // if(isCheck){
+    // setTimeout(() => {
+      // handleCheckSpeedNode(nodesList.value[0])
+      // }, 1000);
+    // }
+  }
+}
+const __setData__ = (data: any) => {
   let _nodesMap: any = JSON.parse(JSON.stringify(NodesMap));
   data.map((node: any) => {
     const _class = node.class; // 0: 免费线路 1: 高速专线 2: 游戏专线
     const _group = node.node_group; // 0: 中国大陆 1:中国香港 2:美国
-    node.latency = "0 ms"
+    node.latency = 0
     if (!userIsVip.value && _class === 0 && _group === 0) {
       _nodesMap[_class].groups[_group].checked = true
       _nodesMap[_class].groups[_group].disabled = false
@@ -123,22 +138,34 @@ const setData = (data: any) => {
 
 // 节点选择
 const handleNodeClick = (node: any, index: number) => {
-  activeNode.value = node;
-  emits("change", node);
+  const _node = { ...node };
+  // if ('auto_'.includes(node.id)) { // 自动
+  // }
+  // activeNode.value = _node
+  emits("change", _node);
 };
 
 // TODO: 线路下的所有节点测速
 const nodeChecking = ref(false);
-const handleCheckSpeedNode = (group: any, groupKey: number) => {
-  nodeChecking.value = true;
-  const _address = group.nodes.map((item: any) => item.host);
-  if(!_address.length) return;
-  pingAddress(_address, (res: any) => {
-    group.nodes.map((item: any, index: number) => {
-      item.latency = res[index].latency
-    })
-    nodeChecking.value = false;
-  });
+/**
+ * x<150ms  green
+ * x>150ms && x<300ms green
+ * x>300ms && x<1000ms warning
+ * x>1000ms && x<3000ms warning
+ */
+const handleCheckSpeedNode = async (group: any) => {
+  group.checking = true;
+   await useLines.checkSpeed(group)
+  // const _address = group.children.map((item: any) => item.detect_target);
+  // if(!_address.length) return;
+  // const _latency = await newPingAddress(_address[0]);
+  // group.children[0].latency = _latency
+  // group.children.map((item: any, index: number) => {
+  //   if(index > 0){
+  //     item.latency = addRandomValue(_latency)
+  //   }
+  // })
+  group.checking = false;
 }
 
 defineExpose({

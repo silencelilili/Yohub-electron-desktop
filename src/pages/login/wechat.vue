@@ -1,85 +1,109 @@
 <template>
-  <div v-if="!isAuthenticated">
+  <div class="weiXinLoginBox">
     <el-button text @click="emits('back', 'password')">
       <el-icon><ArrowLeftBold /></el-icon> 返回
     </el-button>
     <div class="text-center mt-10">
-      <iframe
-        :src="qrcodUrl"
-        frameborder="0"
-        width="400px"
-        height="400px"
-      ></iframe>
-      <!-- <div id="weixinLogin"></div> -->
-      <!-- <p>请使用微信扫码登录</p> -->
+      <webview id="webview" :src="wxloginurl"></webview>
+      <div class="qrcode" v-loading="loading">
+        <img :src="lastCodeUrl" alt="" />
+      </div>
     </div>
   </div>
 </template>
-<script lang="ts" setup>
-import { ref, onMounted } from "vue";
-import { ArrowLeftBold } from "@element-plus/icons-vue";
-import { wechatLogin, getWechatQrcode } from "@/api/auth";
-const emits = defineEmits(["back"]);
-const isAuthenticated = ref(false);
 
-// 从环境变量或配置文件中获取 AppID 和 Redirect URI
-const appId = "wxf3ba968fc2627758"; // import.meta.env.VUE_APP_WECHAT_APPID;
-const appSecret = "095b68ebaf604d8acb88696c191cb2d8";
-const redirectUri = "https://1119.yohub.online/login"; // window.location.origin; // process.env.VUE_APP_WECHAT_REDIRECT_URI;
-const qrcodUrl = ref("");
+<script setup lang="ts">
+import QRCode from "qrcode";
+import { getUrlParam } from "@/utils";
+import { ref, onMounted } from "vue";
+import { wechatLogin, getWechatQrcode } from "@/api/auth";
+
+const emits = defineEmits(["back","wxloginCallback"]);
+const loading = ref(true);
+const wxloginurl = ref("");
+const lastCodeUrl = ref("")
+// ***** 只需修改以下2个参数的值即可 *****
+// 回调地址 这里其实只需要保证和微信开放平台配置的服务器域名一致即可，地址随便填，因为我们真正要取到的是回调的code
+const webviewUrl = encodeURIComponent(
+  `https://yopnl250111.yohub.net`
+);
+const appId = "wx34ffdf3016ebdcc8";    
+// 可由后端生成，用做安全校验，微信回调会返回这个值
+const state = Math.random().toString().slice(2);
+    
+// 拼接微信登录请求地址
+// wxloginurl.value = `https://open.weixin.qq.com/connect/qrconnect?appid=${appId}&redirect_uri=${webviewUrl}&response_type=code&scope=snsapi_login&state=${state}#wechat_redirect`;
 const _getWechatQrcode = () => {
   getWechatQrcode()
     .then((res) => {
-      qrcodUrl.value = res.qCodeUrl;
-      // generateQRCode(res.data);
+      wxloginurl.value = res.qCodeUrl;
     })
     .catch((err) => {
       console.error(err);
     });
 };
-// 处理微信登录回调
-const handleLoginCallback = async (code) => {
-  try {
-    const response = await wechatLogin({ code, appId, appSecret });
-    if (response.data && response.data.token) {
-      localStorage.setItem("token", response.data.token);
-      isAuthenticated.value = true;
-    }
-  } catch (error) {
-    console.error("Error during WeChat login:", error);
-  }
-};
+// 获取微信登录的二维码
+onMounted(async () => {
+  await _getWechatQrcode()
+  const webview = document.querySelector("webview") as any;
+  webview.addEventListener("dom-ready", (e: any) => {
+    console.log("webview加载完毕~~");
+    webview
+      .executeJavaScript(`document.querySelector('.qrcode').outerHTML`)
+      .then((res: any) => {
+        const uuid = res?.match(/src="\/connect\/qrcode\/(\S*)">/)[1];
+        const qrCodeUrl = `https://open.weixin.qq.com/connect/confirm?uuid=${uuid}&chInfo=ch_share__chsub_CopyLink`;
+        console.log("qrcodeUrl", qrCodeUrl);
+        QRCode.toDataURL(qrCodeUrl, {
+          width: 200,
+          height: 200,
+          correctLevel: 'M'
+        }).then((url: string) => {
+          lastCodeUrl.value = url
+          loading.value = false
+          console.log('-----',lastCodeUrl.value)
+        }).catch((error) => {
+          console.error(error)
+          loading.value = false
+        })
+      });
+  });
+  webview.addEventListener("dom-change", (e: any) => {
+    console.log("did-change", e);
+  });
 
-// 初始化
-onMounted(() => {
-  _getWechatQrcode();
-  // setWxerwma();
-  // 监听 URL 中的 code 参数
-  if (window.location.hash.includes("code=")) {
-    const code = window.location.hash.split("code=")[1].split("&")[0];
-    handleLoginCallback(code);
-  }
+  // 微信扫码后的webView跳转监听
+  webview.addEventListener("will-navigate", (e: any) => {
+    console.log(
+      "监听到用户扫码后的webView跳转，得到的登录code为",
+      getUrlParam(e.url, "code")
+    );
+    loading.value = true;
+    // 将得到的code返回给父组件
+    emits("wxloginCallback", getUrlParam(e.url, "code"));
+  });
 });
-
-// 实例微信js对象
-function setWxerwma() {
-  const s = document.createElement("script");
-  s.type = "text/javascript";
-  s.src = "https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js";
-  const wxElement = document.body.appendChild(s);
-  wxElement.onload = function () {
-    const obj = new WxLogin({
-      self_redirect: false,
-      id: "weixinLogin", // 需要显示的容器id
-      appid: appId, // 微信开放平台appid wx*******
-      scope: "snsapi_login", // 网页默认即可
-      redirect_uri: encodeURIComponent(redirectUri), // 授权成功后回调的url
-      state: Math.ceil(Math.random() * 1000), // 可设置为简单的随机数加session用来校验
-      style: "black", // 提供"black"、"white"可选。二维码的样式
-      // href: 'data:text/css;base64,LmltcG93ZXJCb3ggLnFyY29kZSB7bWFyZ2luLXRvcDowO30KLmltcG93ZXJCb3ggLnRpdGxlIHtkaXNwbGF5OiBub25lO30=', // 外部css文件url，需要https
-    });
-    console.log(obj);
-  };
-}
 </script>
-<style lang="less" scoped></style>
+
+<style scoped lang="less">
+.weiXinLoginBox {
+  width: 100%;
+  #webview {
+    height: 0;
+    // visibility: hidden;
+
+  }
+  .qrcode {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+
+    img {
+      width: 100%;
+      height: 100%;
+      margin: auto;
+    }
+  }
+}
+</style>
+

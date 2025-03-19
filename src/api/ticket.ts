@@ -36,9 +36,9 @@ export const getTicketDetail = (params: any) => {
   return request.post("/user/ticket/view", params);
 };
 /**
- * 修改工单
+ * 工单回复
  * @param params
  */
-// export const updateTicket = (id: string, params: any) => {
-//   return request.put(`/user/ticket/${id}`, params);
-// };
+export const replyTicket = (params: any) => {
+  return request.post(`/user/ticket/reply`, params);
+};

@@ -25,23 +25,29 @@
               <span class="font-size-3">¥</span
               ><span class="font-size-7">{{ item?.price || "0" }}</span>
             </div>
-            <div class="color-#C3B097">
-              <s
-                ><span class="font-size-3">¥</span
-                ><span class="font-size-4">{{
+            <div class="color-#C3B097 h-21px">
+              <span v-if="item?.price != item?.originprice"
+                ><span class="font-size-3">原价 ¥</span
+                ><s class="font-size-4">{{
                   item?.originprice || "0"
-                }}</span></s
+                }}</s></span
               >
             </div>
           </div>
           <div class="unit-price">
-            {{
+            ¥{{
               (item?.averagevalue || "0") +
-              (item.type === "bandwidth" ? "/GB" : "/月")
+              (item.type === "bandwidth" ? "/GB" : "/天")
             }}
           </div>
         </div>
       </div>
+      <!-- 数据为空时的占位 -->
+      <template v-if="productList.length===0">
+        <el-skeleton />
+        <el-skeleton />
+      </template>
+
 
       <div class="secondary-color my-4">
         <div>包含VIP会员所有权益（时间卡不限流量，流量卡不限时间）</div>
@@ -62,7 +68,7 @@
               style="width: 240px"
               placeholder="请输入优惠码"
             />
-            <p class="color-#EF3434 small-font">{{ couponResult.msg }}</p>
+            <p v-if="couponCode" class="color-#EF3434 small-font">{{ couponResult.msg }}</p>
           </div>
           <el-button type="primary" plain @click="handleCheckCouponCode"
             >应用</el-button
@@ -75,37 +81,19 @@
         <div class="mb-4">支付方式</div>
         <div class="payment-list grid md:grid-cols-4 gap-4">
           <div
-            v-for="(item, index) in paymentOptions"
+            v-for="(item, index) in billingWay"
             :key="index"
             :class="[
               'payment-list-item',
-              activePayment === item.value
+              activePayment === item.key
                 ? 'payment-list-item-active'
                 : '',
             ]"
             @click="handleChangePayment(item)"
           >
-            <el-icon v-if="activePayment === item.value" class="active-icon"
+            <el-icon v-if="activePayment === item.key" class="active-icon"
           ><Select /></el-icon>
-            <!-- <div class="payment-list-item-icon"> -->
-            <img
-              v-if="item.value === 'wechat'"
-              src="@/assets/images/pay-wechat.png"
-              :alt="item.label"
-              class="h-10"
-            />
-            <img
-              v-else-if="item.value === 'alipay'"
-              src="@/assets/images/pay-ali.png"
-              :alt="item.label"
-              class="h-10"
-            />
-            <!-- <img
-              v-else-if="item.value === 'paypal'"
-              src="@/assets/images/pay-pal.png"
-              :alt="item.label"
-            /> -->
-            <div v-else-if="item.value === 'stripe'">
+            <div v-if="item.key === 'stripe'">
               <img src="@/assets/images/pay-stripe.png" class="h-10" :alt="item.label" />
               <div class="grid grid-flow-col gap-1">
                 <img src="@/assets/images/stripe-union.png" class="h-4" />
@@ -116,13 +104,12 @@
               </div>
             </div>
             <img
-              v-else-if="item.value === 'balance'"
-              src="@/assets/images/pay-balance.png"
+              v-else
+              :src="item.img"
               :alt="item.label"
               class="h-10"
             />
-            <!-- </div> -->
-            <div v-if="item.value === 'balance'" class="payment-list-item-title">{{ item.label }}</div>
+            <div v-if="item.key === 'balance'" class="payment-list-item-title">{{ item.label }}</div>
           </div>
         </div>
       </div>
@@ -136,7 +123,7 @@
               {{ activeSubscribe.predesc }}</span
             >
             <span class="color-#FF0000"
-              >CNY ￥ {{ activeSubscribe.originprice || "0" }}</span
+              >原价 CNY ￥ {{ activeSubscribe.originprice || "0" }}</span
             >
           </div>
           <div
@@ -191,7 +178,7 @@
         @success="onPaymentSuccess"
       />
     </template>
-    <protocolsPage ref="protocolsRef" />
+
     <!-- stripe 支付结果查询弹窗-->
     <el-dialog
       v-model="stripeStatusDialogVisible"
@@ -207,25 +194,28 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handleStripeStatusCancel">支付未完成</el-button>
-          <el-button type="primary" @click="handleStripeStatusOk">
+          <el-button type="primary" :loading="stripLoading" @click="handleStripeStatusOk">
             支付完成
           </el-button>
         </div>
       </template>
     </el-dialog>
+
+    <protocolsPage ref="protocolsRef" />
   </div>
 </template>
 <script lang="ts" setup>
 import { onMounted, defineProps, ref, nextTick, computed } from "vue";
 import { useRouter } from "vue-router";
-import { subscribeList, paymentOptions, type IProductItem } from "./config";
+import { subscribeList, paymentOptions, paymentOptionsMap, type IProductItem} from "./config";
 import { ArrowUp, ArrowLeft, Select } from "@element-plus/icons-vue";
 import PaymentVue from "@/components/Payment.vue";
 import protocolsPage from '../protocols/index.vue'
-import { getProductList, checkCoupon, createOrder } from "@/api/order";
+import { getProductList, checkCoupon, createOrder, getBilling } from "@/api/order";
 import { useUserStore } from "@/stores";
 import { formatByteSize, generateRandomString } from "@/utils";
 import { useStripePayment } from "@/hooks/usePayment";
+import useInit from "@/hooks/useInit";
 
 const router = useRouter();
 const props = defineProps({
@@ -253,8 +243,9 @@ onMounted(async () => {
       total: formatByteSize(userInfo.value?.transfer_total || (0 as number)),
     };
   }
-  console.log("userInfo.value", userInfo.value);
+  // console.log("userInfo.value", userInfo.value);
   _getProductList();
+  getBillingApi()
 });
 
 const _getProgressWidth = (
@@ -275,7 +266,7 @@ const productList = ref<IProductItem[]>([]);
 const _getProductList = async () => {
   const { data } = await getProductList();
   productList.value = [...data.tabp, ...data.bandwidth, ...data.time] as any;
-  activeSubscribe.value = productList.value[0];
+  activeSubscribe.value = JSON.parse(JSON.stringify(productList.value[0]))
 };
 
 /**
@@ -289,7 +280,12 @@ const activeSubscribe = ref<IProductItem>({
 });
 const handleChooseSubscribe = (item: any, index: number) => {
   activeSubscribeIndex.value = index;
-  activeSubscribe.value = item;
+  activeSubscribe.value = JSON.parse(JSON.stringify(item));
+  couponResult.value = {
+    buy_price: 0,
+    discount: 0,
+    msg: "",
+  };
 };
 
 // 退款规则
@@ -335,11 +331,28 @@ const handleCheckCouponCode = () => {
 };
 
 /**
+ * 获取可用支付方式
+ */
+const billingWay = ref([])
+const getBillingApi = () => {
+  getBilling().then((res) => {
+    const _data = JSON.parse(res.data) || [];
+    // billingWay.value = JSON.parse(_data)
+    billingWay.value = _data.length && _data.map((key: string) => {
+      const _item = paymentOptionsMap[key]
+      return _item
+    }) || []
+    activePayment.value = billingWay.value[0]?.key as string
+  }).catch((err) => {
+    billingWay.value = []
+  })
+}
+/**
  * 选择支付方式
  */
-const activePayment = ref("wechat");
+const activePayment = ref();
 const handleChangePayment = (item: any) => {
-  activePayment.value = item.value;
+  activePayment.value = item.key;
 };
 
 /**
@@ -360,6 +373,7 @@ const handleCreateOrder = () => {
   createOrder({
     coupon: couponCode.value,
     product_id: activeSubscribe.value.id,
+    pay_type: activePayment.value
   })
     .then((res) => {
       ElMessage.success("创建订单成功");
@@ -383,7 +397,7 @@ const paymentRef = ref();
 
 const stripeStatusDialogVisible = ref(false);
 const handlePay = (data: any) => {
-  if (activePayment.value === "alipay") {
+  if (activePayment.value === "f2f") {
     // 支付宝支付
     subscribePageType.value = "pay";
     const _data = {
@@ -405,9 +419,10 @@ const handlePay = (data: any) => {
     };
     stripePayment
       .makePayment(_data)
-      .then((res) => {
+      .then(async (res) => {
         console.log("useStripePayment.makePayment success ------", res);
         stripeStatusDialogVisible.value = true;
+        await useInit()
       })
       .catch((err) => {
         console.log("useStripePayment.makePayment error ------", err);
@@ -432,19 +447,25 @@ const onPaymentSuccess = () => {
   closePayment()
 }
 
+const stripLoading = ref(false)
 // 关闭stripe支付状态弹窗
 const handleStripeStatusOk = () => {
+  stripLoading.value = true
   stripePayment
     .queryPaymentResult()
-    .then((res) => {
+    .then(async (res) => {
       console.log("useStripePayment.queryPaymentResult success ------", res);
       stripeStatusDialogVisible.value = false;
+      stripLoading.value = false
+      await useInit()
     })
     .catch((err) => {
       console.log("useStripePayment.queryPaymentResult error ------", err);
+      stripLoading.value = false
     });
 };
 const handleStripeStatusCancel = () => {
+  stripePayment.stopPolling()
   stripeStatusDialogVisible.value = false;
 };
 </script>

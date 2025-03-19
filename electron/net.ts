@@ -1,10 +1,11 @@
-import { net, session } from "electron";
+import { net, app, session } from "electron";
 import axios from "axios";
+import { API_BASE_URL } from "./utils";
 
 function login(data: any) {
   return new Promise((resolve, reject) => {
     axios
-      .post("https://1119.yohub.online/auth/login", data, {
+      .post(`${API_BASE_URL}/auth/login`, data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -14,10 +15,7 @@ function login(data: any) {
         console.log("状态码:", response.status);
         console.log("响应头:", response.headers["set-cookie"]);
         console.log("响应数据:", response.data);
-        _setCookieArray(
-          response.headers["set-cookie"],
-          "https://1119.yohub.online"
-        );
+        _setCookieArray(response.headers["set-cookie"], API_BASE_URL);
         // _setCookieArray(response.headers["set-cookie"], "file://");
         resolve({ ...response.data, cookies: response.headers["set-cookie"] });
         try {
@@ -75,6 +73,22 @@ export function _setCookieArray(
       return nameValuePart;
     }) || [];
   return _arr;
+}
+
+export function clearCookieArray(url: string) {
+  // 删除cookie
+  session.defaultSession.cookies.get({ url }).then((cookies) => {
+    // console.log(cookies);
+    //删除cookie需要循环remove
+    for (var i = 0; i < cookies.length; i++) {
+      //删除cookie
+      session.defaultSession.cookies
+        .remove(url, cookies[i].name)
+        .then((res) => {
+          console.log(cookies[i].name, "删除成功");
+        });
+    }
+  });
 }
 
 export { login };

@@ -4,37 +4,37 @@
       <NavBar :userInfo="userInfos" />
     </div>
     <div class="home-content flex-1">
+      <HeaderBar class="title-bar" />
       <div class="flex justify-between items-center h-12">
         <!-- <div>YoHub {{ $t("app.title") }}</div> -->
         <div class="pl-4 pt-2 flex-1 title-bar">
           <img
-            v-if="!isDark"
             src="@/assets/images/logo-dark.png"
             alt=""
             class="w-100px"
           />
-          <img
-            v-else
+          <!-- <img
             src="@/assets/images/logo-light.png"
             alt=""
             class="w-100px"
-          />
-          <!-- <el-alert v-if="userInfos?.alertMsg" class="error-alert ml-2" type="error" :closable="false" style="padding:4px;">{{userInfos?.alertMsg}}</el-alert> -->
+          /> -->
+          <el-alert v-if="userInfos?.class == 0" class="error-alert ml-2" type="error" :closable="false" style="padding:4px;">{{ !userInfos?.isEnable ? '您的体验流量已经用尽，请立即升级VIP！':' 立即升级VIP，畅享极速回国体验！'}}</el-alert>
+          <!-- <el-alert v-if="userInfos?.class!==0 && !userInfos?.isEnable && userInfos?.alertMsg" class="error-alert ml-2" type="error" :closable="false" style="padding:4px;">{{userInfos?.alertMsg}}</el-alert> -->
         </div>
-        <div class="op-list">
-          <el-tooltip effect="dark" content="快速上手" placement="bottom">
+        <div class="op-list pr-4">
+          <!-- <el-tooltip effect="dark" content="快速上手" placement="bottom">
             <svg-icon
               name="op-guide"
               @click="handleToPage('/guide')"
             ></svg-icon>
-          </el-tooltip>
+          </el-tooltip> -->
           <el-tooltip effect="dark" content="联系我们" placement="bottom">
             <svg-icon
               name="op-service"
               @click="handleToPage('/connectUs')"
             ></svg-icon>
           </el-tooltip>
-          <el-tooltip effect="dark" content="切换语言" placement="bottom">
+          <!-- <el-tooltip effect="dark" content="切换语言" placement="bottom">
             <svg-icon name="op-language" @click="handleCommand()"></svg-icon>
           </el-tooltip>
           <el-tooltip effect="dark" content="切换主题" placement="bottom">
@@ -42,7 +42,7 @@
               :name="isDark ? 'op-light' : 'op-dark'"
               @click="toggleDark()"
             ></svg-icon>
-          </el-tooltip>
+          </el-tooltip> -->
           <el-tooltip effect="dark" content="我的消息" placement="bottom">
             <svg-icon
               name="op-message"
@@ -68,19 +68,18 @@
     <!-- <div class="invite-affix" @click="handleToPage('/invite')">
       <img src="@/assets/images/invite-icon.png" style="width: 42px" alt="" />
     </div> -->
+
   </div>
 </template>
 <script lang="ts" setup>
 import NavBar from "@/components/NavBar.vue";
 import { useLocale } from "@/hooks/useLocale";
-import { useDark, useToggle } from "@vueuse/core";
-import { computed, onMounted } from "vue";
+// import { useDark, useToggle } from "@vueuse/core";
+import { computed, onMounted, ref } from "vue";
 import { useUserStore } from "@/stores";
-import { useSubConfig } from "@/hooks/useSubConfig";
 import { useRoute, useRouter } from "vue-router";
-import useConnect from "@/hooks/useConnect";
-import { report } from "@/api/user";
-import pkg from "../../package.json";
+import useConnectHook from "@/hooks/useConnect";
+import useInit from "@/hooks/useInit";
 
 const { currentLocale, changeLocale } = useLocale();
 const route = useRoute();
@@ -89,10 +88,10 @@ const routerKey = computed(() => {
 });
 const cacheList = ['HomePage']
 // 切换主题
-const isDark = useDark({
-  storageKey: "yohub-theme",
-});
-const toggleDark = useToggle(isDark);
+// const isDark = useDark({
+//   storageKey: "yohub-theme",
+// });
+// const toggleDark = useToggle(isDark);
 // 切换语言
 async function handleCommand() {
   const nextLocale = currentLocale.value === "zhCn" ? "en" : "zhCn";
@@ -101,20 +100,19 @@ async function handleCommand() {
 const router = useRouter();
 const userInfos = computed(() => userStore.userInfo);
 const userStore = useUserStore();
-const { handleConnect, handleDisconnect } = useConnect();
+const { handleConnect, handleDisconnect } = useConnectHook();
 
 onMounted(async () => {
-  // 获取用户信息
-  await userStore.getUserInfoApi();
-  useSubConfig().getConfig("json");
-  handleReport()
+  // 初始化
+  await useInit()
 
   // 监听主进程发送的消息
   window.ipcRenderer.off("update-status", () => {});
   window.ipcRenderer.on("update-status", (res, d) => {
     console.log(`「监听」主进程消息 update-status 连接`, res, d);
     if (d === "connect") {
-      handleConnect();
+      // TODO:端口动态设置
+      // handleConnect("10808");
     } else {
       handleDisconnect();
     }
@@ -123,25 +121,20 @@ onMounted(async () => {
 
 // 打开页面
 const handleToPage = (path: string) => {
-  router.push(path);
+  if (path === '/connectUs') {
+    window.$Yohub.$desktop({ type: "openExternal", data:"https://zsiq.io/qXgGk" });
+  } else {
+    router.push(path);
+  }
+
 };
 
-// 上报终端信息
-const handleReport = () => {
-  const data = {
-    type: window.$Yohub.$platform,
-    version: pkg.version
-  }
-  console.log("上报终端信息", data)
-  report(data).then((res) => {
-    console.log("上报终端信息", res);
-  });
-};
+
 </script>
 <style lang="less" scoped>
 .home-wrap {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100vh;//calc(100vh - 32px);
   display: grid;
   grid:
     "home-sidebar home-content" 1fr
@@ -165,11 +158,13 @@ const handleReport = () => {
   }
 }
 .op-list {
-  width: 30%;
+  // width: 30%;
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-end;
   align-items: center;
   font-size: 24px;
+  gap: 16px;
+  margin-left: 16px;
   .svg-icon {
     cursor: pointer;
     color: var(--el-text-color-primary);

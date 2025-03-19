@@ -37,15 +37,18 @@
             @click="handleOpenDrawer('line')"
           >
             <div class="flex-1">
-              <p>{{ currentNode.node_group_label }}</p>
+              <p>{{ currentNode.parentName }}</p>
               <el-space :size="16">
-                <el-text type="primary" size="small">自动</el-text>
-                <el-text type="primary" size="small">{{currentNode.name}}</el-text>
+                <el-text type="primary" size="small">{{currentNode.line}}</el-text>
               </el-space>
             </div>
 
             <div class="flex-center">
-              <img class="w-10" src="@/assets/images/china-icon.png" alt="" />
+              <!-- <img class="w-10" src="@/assets/images/china-icon.png" alt="" /> -->
+              <!-- <img :src="flagIconSrc(currentNode.region)" alt=""> -->
+              <svg-icon :name="currentNode.region?.toLowerCase()" font-size="20px" style="color: #fff"></svg-icon>
+              <span class="mx-1"> -> </span>
+              <svg-icon name="cn" font-size="20px"></svg-icon>
               <el-icon><ArrowRightBold /></el-icon>
             </div>
           </div>
@@ -88,7 +91,7 @@
                   $t("home.linkDelay")
                 }}</span
               >
-              <span class="color-#3366FF">{{ trafficData.delay }}</span>
+              <span class="color-#3366FF">{{ trafficData.delay }}ms</span>
             </li>
             <li>
               <span
@@ -125,7 +128,6 @@
       </el-card>
     </el-col>
   </el-row>
-
   <el-drawer
     v-model="drawer"
     :title="drawerTitle"
@@ -138,16 +140,10 @@
         class="flex justify-between items-center mode-item"
         v-for="item in modeList"
         :key="item.key"
+        @click="handleChangeMode(item)"
       >
         <img
-          v-if="item.key === 'policy'"
-          src="@/assets/images/home/mode-policy@2x.png"
-          alt=""
-          class="w-11 mr-2"
-        />
-        <img
-          v-if="item.key === 'global'"
-          src="@/assets/images/home/mode-global@2x.png"
+          :src="item.img"
           alt=""
           class="w-11 mr-2"
         />
@@ -155,21 +151,22 @@
           <span>{{ item.name }}</span>
           <span class="color-#668CFF">{{ item.desc }}</span>
         </div>
-        <el-checkbox v-model="item.value" label="" size="large" />
+        <el-icon v-if="currentMode.key === item.key" class="color-#668CFF"
+          ><Select /></el-icon>
+        <!-- <el-checkbox v-model="item.value" label="" size="large" /> -->
       </div>
     </div>
 
     <!-- 线路选择 -->
     <div v-show="drawerType === 'line'">
-      <NodeListVue ref="nodeListRef" @change="onNodeChange" />
+      <NodeListVue ref="nodeListRef" :data="nodeList" :current="currentNode" @change="onNodeChange" />
     </div>
-   
   </el-drawer>
 </template>
 <script lang="ts" setup name="HomePage">
-import { ArrowRightBold } from "@element-plus/icons-vue";
+import { ArrowRightBold, Select } from "@element-plus/icons-vue";
 import { reactive, ref, onMounted, computed, watch, nextTick, onActivated, defineOptions } from "vue";
-import {  ModeList, NodeGroup, connectionStatusEnum } from "./config";
+import {  ModeList, NodeGroup, connectionStatusEnum, connectionStatusMap } from "./config";
 import { useLocale } from "@/hooks/useLocale";
 import {
   convertByte,
@@ -180,29 +177,31 @@ import {
 // import { useIntervalFn } from "@vueuse/core";
 import echarts from "@/utils/echarts";
 import bus from "@/utils/bus";
-import useConnect from "@/hooks/useConnect";
+import useConnectHook from "@/hooks/useConnect";
 import { useUserStore, useAppStore } from "@/stores/index";
 import NodeListVue from './node-list.vue'
-import { getNodesList } from "@/api/user";
 import { getTrafficRecord } from "@/utils/yohub.desktop"
-
+import { getSessionStorage, setSessionStorage } from "@/utils/yohub.store";
+import useLinesHook, { type INodeItem } from "@/hooks/useLines";
+import useModeHook from "@/hooks/useMode";
+import { usePolling } from "@/hooks/usePolling";
+import { ElMessage } from "element-plus";
 defineOptions({ name: "HomePage" })
 const { t } = useLocale();
 
-const userInfo = computed(() => useUserStore().userInfo);
+// const userInfo = computed(() => useUserStore().userInfo);
 
 // 从缓存中获取连接状态
-const uconnect =
-  useConnect();
-// const onlineTimes = ref(0);
+const useConnect = useConnectHook();
 const trafficData = reactive({
-  uplink: "0.00kb/s",
-  downlink: "0.00kb/s",
-  delay: "0ms",
+  uplink: "0.00 kbps",
+  downlink: "0.00 kbps",
+  delay: "0",
   speedTime: "00:00:00",
 });
 
-const currStatus = ref(uconnect.connectionStatus);
+const useLines = useLinesHook()
+const currStatus = ref(useConnect.connectionStatus);
 watch(
   () => useAppStore().onlineStatus,
   (newStatus: any) => {
@@ -215,27 +214,48 @@ watch(
     trafficData.speedTime = formatTime(time);
   }
 );
+watch(
+  () => useAppStore().linesList,
+  (data: any) => {
+    nodeList.value = data;
+  },
+  {
+    deep: true,
+  }
+);
+watch(
+  () => useAppStore().currentLine,
+  (data: any) => {
+    currentNode.value = data;
+  },
+  {
+    deep: true,
+  }
+);
 
 //  已使用的总流量
 const transferTotal = ref("0");
-onMounted(() => {
+onMounted(async () => {
   // console.log('onMounted', trafficData)
-  currentMode.value = modeList.value.policy;
+  currentMode.value = modeList.value.proxy;
 
   // transferTotal.value = formatByteSize(
   //   (userInfo.value?.transfer_total || 0) as number
   // );
   _getTrafficRecord();
-  _getNodesListApi()
-  // window.ipcRenderer.on("traffic-result", (_event: any, data: any) => {
+
+  // await useLines.getLines()
+  // nodeList.value = useLines.lineList.value
+  // currentNode.value = useLines.currentLine.value
+
   bus.off("traffic-result", () => {});
   bus.on("traffic-result", (data: any) => {
     if (!!data) {
       trafficData.uplink = convertByte(data.diffUp);
       trafficData.downlink = convertByte(data.diffDown);
     } else {
-      trafficData.uplink = "0.00kb/s";
-      trafficData.downlink = "0.00kb/s";
+      trafficData.uplink = "0.00 kbps";
+      trafficData.downlink = "0.00 kbps";
     }
   });
   bus.off("latency-result", () => {});
@@ -243,7 +263,7 @@ onMounted(() => {
     if (!!data) {
       trafficData.delay = data.latency;
     } else {
-      trafficData.delay = "0ms";
+      trafficData.delay = "0";
     }
   });
 });
@@ -251,63 +271,95 @@ onMounted(() => {
 onActivated(() => {
   // console.log('activated')
 })
+
+const flagIconSrc = (icon: string) => {
+  const _icon = icon && icon.toLowerCase()
+  return new URL(`@/assets/icons/flags/${_icon}.svg`, import.meta.url).href;
+}
 // 连接/断开 =============
 const handleSwitchStatus = () => {
   const _currStatus = currStatus.value;
   if (_currStatus.status === connectionStatusEnum.CONNECTED) {
-    uconnect.handleDisconnect();
+    useConnect.handleDisconnect();
     // pause();
   } else if (_currStatus.status === connectionStatusEnum.DISCONNECTED) {
-    uconnect.handleConnect();
-    // resume();
+     // TODO:端口动态设置
+    // if(currentNode.value?.proxy_port) {
+    //   useConnect.handleConnect(currentNode.value);
+    // } else {
+    //   ElMessage.warning("正在为您选择最优线路，请稍后重试");
+    // }
+    if(isReady.value) {
+      useConnect.handleConnect(currentNode.value, useMode.getMode());
+    } else {
+      currStatus.value = connectionStatusMap.connecting;
+      startPolling()
+    }
   }
 };
+const { isReady, startPolling, stopPolling } = usePolling(() => {
+  return !!currentNode.value?.proxy_port
+}, 100)
+
+watch(
+  () => isReady.value,
+  (value: any) => {
+    console.log('isReady', value)
+   if(value) {
+    useConnect.handleConnect(currentNode.value, useMode.getMode());
+    stopPolling()
+   }
+  }
+);
 
 // 切换线路/模式 ==============
 const drawer = ref(false);
 const drawerTitle = ref("");
 const drawerType = ref("");
-// 模式列表
-const modeList = ref(ModeList);
-
-const currentNode = ref({
-  name: "",
-  node_group: "",
-  node_group_label: ''
-});
-const currentMode = ref({ name: "", key: "" });
-
 const handleOpenDrawer = (type: string) => {
   drawerType.value = type;
   drawer.value = true;
   nextTick(() => {
    if (type === "line") {
     drawerTitle.value = t("home.switchLine"); //"切换线路";
-      if(nodeListRef.value) nodeListRef.value.setData(nodeList.value)
     } else if (type === "mode") {
       drawerTitle.value = t("home.switchMode"); // "切换模式";
-      currentMode.value = modeList.value.policy;
+      // currentMode.value = modeList.value.proxy;
     }
  })
 };
 const handleDrawerClose = () => {
   drawer.value = false;
 };
+// 切换模式
+const useMode = useModeHook()
+const modeList = ref(ModeList);
+const currentMode = ref({ name: "", key: "" });
+const handleChangeMode = (item: any) => {
+    currentMode.value = item;
+  // TODO: 不同模式之间的切换逻辑
+  // 1. 重新设置xray的配置文件
+  // 2. 启动/停止sing-box
+  if (currStatus.value.status === connectionStatusEnum.CONNECTED) {
+    useConnect.handleDisconnect();
+    setTimeout(() => {
+      useConnect.handleConnect(currentNode.value, item.key);
+      useMode.onlySetMode(item.key)
+    }, 1000);
+  } else {
+    useMode.onlySetMode(item.key)
+  }
+}
 
 // 监听线路的选择
+const currentNode = ref<INodeItem>(getSessionStorage("currentLine") || {parentName: '', line: '', region: ''});
 const nodeListRef = ref();
-const nodeList = ref()
-// 获取链路列表
-const _getNodesListApi = () => {
-  getNodesList().then((res: any) => {
-    const data = res.data;
-    nodeList.value = data;
-    onNodeChange(data[0])
-  });
-};
-
-const onNodeChange = (node: any) => {
-  currentNode.value = {...node, node_group_label: NodeGroup[node.node_group]};
+const nodeList = ref(getSessionStorage("linesList") || [])
+const onNodeChange = (line: any, isInit = false) => {
+  currentNode.value = { ...line };
+  useLines.setLine(line, isInit, () => {
+    useConnect.onlyConnect(line)
+  })
 };
 
 // 柱状图
@@ -316,11 +368,18 @@ const _getTrafficRecord = () => {
   getTrafficRecord((res: any) => {
     const xdata = Object.keys(res)
     const _values = Object.values(res)
+    if (xdata.length === 0) {
+      initBar([], {up: [], down: []})
+      return;
+    }
     let _up: number[] = []
     let _down: number[] = []
-   const _totalVal = _values.map((item: any) => {
-      _up.push(item[0]/1024/1024/1024)
-      _down.push(item[1] / 1024 / 1024 / 1024)
+    const _totalVal = _values.map((item: any) => {
+      const _up_v = (item[0]/1024/1024/1024).toFixed(2)
+      _up.push(Number(_up_v))
+      
+      const _down_v = (item[1]/1024/1024/1024).toFixed(2)
+      _down.push(Number(_down_v))
       const _total = item[0] + item[1]
       return _total
    })
@@ -372,7 +431,10 @@ const initBar = (_xData: string[], data: {up: number[], down: number[]}) => {
         type: "value",
         axisLabel: {
           // 使用 formatter 函数格式化标签文本
-          formatter: '{value} GB' // 在这里设置单位
+          formatter: (value: any) => {
+            const _v = value.toFixed(2)
+            return _v+'GB' // 在这里设置单位
+          }
         },
       },
     ],
@@ -554,6 +616,7 @@ const initBar = (_xData: string[], data: {up: number[], down: number[]}) => {
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 16px;
+  cursor: pointer;
 }
 
 </style>

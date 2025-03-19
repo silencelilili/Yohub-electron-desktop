@@ -36,18 +36,23 @@ export enum subscriptionStatusEnum {
   SUBSCRIBED = "subscribed",
   UNSUBSCRIBED = "unsubscribed",
 }
+
 export const ModeList = {
-  policy: {
-    key: "policy",
+  proxy: {
+    key: "proxy",
     value: true,
     name: "影音模式",
     desc: "加速主流流媒体服务",
+    img: new URL(`@/assets/images/home/mode-policy@2x.png`, import.meta.url)
+      .href,
   },
   global: {
     key: "global",
     value: false,
-    name: "游戏模式",
-    desc: "加速流行的网络游戏服务",
+    name: "全局模式（RC）",
+    desc: "加速常见网络游戏及部分客户端应用",
+    img: new URL(`@/assets/images/home/mode-global@2x.png`, import.meta.url)
+      .href,
   },
 };
 
@@ -124,71 +129,29 @@ export const NodesMap = {
   },
 };
 
-export const LineList = [
+export const currentLineList = [
   {
-    name: "免费线路",
-    value: "free",
-    type: "group",
-    children: [
+    美国: [
       {
-        name: "中国",
-        desc: "免费线路，仅支持中国大陆地区",
-        value: "free",
-        children: [
-          {
-            name: "中国1",
-            desc: "免费线路，仅支持中国大陆地区",
-            value: "free",
-            speed: 100,
-          },
-          {
-            name: "中国2",
-            desc: "备用线路，仅支持中国大陆地区",
-            value: "free2",
-            speed: 100,
-          },
-        ],
+        line: "美国1",
+        node_id: 7,
+        detect_target: "node5.trustmatrix.cn",
+        traffic_key: "node5",
+        proxy_port: "10808",
       },
       {
-        name: "美国",
-        desc: "备用线路，仅支持中国大陆地区",
-        value: "free2",
-      },
-    ],
-  },
-  {
-    name: "高速专线",
-    desc: "备用线路，仅支持中国大陆地区",
-    value: "free2",
-    type: "group",
-    children: [
-      {
-        name: "中国",
-        desc: "免费线路，仅支持中国大陆地区",
-        value: "free",
+        line: "美国2",
+        node_id: 7,
+        detect_target: "node5.trustmatrix.cn",
+        traffic_key: "node5",
+        proxy_port: "10808",
       },
       {
-        name: "美国",
-        desc: "备用线路，仅支持中国大陆地区",
-        value: "free2",
-      },
-    ],
-  },
-  {
-    name: "游戏专线",
-    desc: "备用线路，仅支持中国大陆地区",
-    value: "free2",
-    type: "group",
-    children: [
-      {
-        name: "中国",
-        desc: "免费线路，仅支持中国大陆地区",
-        value: "free",
-      },
-      {
-        name: "美国",
-        desc: "备用线路，仅支持中国大陆地区",
-        value: "free2",
+        line: "美国3",
+        node_id: 7,
+        detect_target: "node5.trustmatrix.cn",
+        traffic_key: "node5",
+        proxy_port: "10808",
       },
     ],
   },

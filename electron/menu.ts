@@ -28,7 +28,7 @@ export function setupMenu(mainWindow: BrowserWindow | null) {
   _mainWindow = mainWindow;
   const template: MenuItemsType = [
     {
-      label: "app",
+      label: "Yohub",
       submenu: [
         {
           label: "关于",
@@ -37,7 +37,7 @@ export function setupMenu(mainWindow: BrowserWindow | null) {
           },
         },
         {
-          label: "退出",
+          label: "退出应用",
           click: async () => {
             console.log("[menu] 退出");
             await quitApp();

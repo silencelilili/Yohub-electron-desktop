@@ -4,7 +4,7 @@
 {
   "productName": "YoHubApp",
   "appId": "com.YiYun.Yohubcool",
-  "copyright": "Copyright © 2024 www.yohub.net All Rights Reserved",
+  "copyright": "Copyright © 2025 www.yohub.net All Rights Reserved",
   "directories": {
     "output": "release/${version}"
   },
@@ -12,19 +12,27 @@
   "files": ["dist/**/*", "dist-electron/**/*", "resources/**/*", "build/**/*"],
   "extraResources": [
     {
-      "from": "resources",
-      "to": "./resources"
+      "from": "resources/scripts",
+      "to": "./resources/scripts"
+    },
+    {
+      "from": "resources/yohub-service/${platform}-${arch}",
+      "to": "./resources/yohub-service/${platform}-${arch}"
     }
   ],
   "extraFiles": [
     {
-      "from": "resources",
-      "to": "Resources/resources"
+      "from": "resources/scripts",
+      "to": "Resources/resources/scripts"
+    },
+    {
+      "from": "resources/yohub-service/${platform}-${arch}",
+      "to": "Resources/resources/yohub-service/${platform}-${arch}"
     }
   ],
   "mac": {
-    "category": "com.xxx.silence",
-    "identity": "com.YiYun.Yohubcool",
+    "category": "com.dahe.youhub",
+    "identity": "Beijing Dahe Lejing Technology Co., Ltd. (Q4R5358RTZ)",
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
     "artifactName": "${productName}-Mac-${version}-${arch}.${ext}",
@@ -50,6 +58,7 @@
   "win": {
     "target": "nsis",
     "icon": "build/icons/icon.ico",
+    "artifactName": "${productName}-Win-${version}-${arch}.${ext}",
     "requestedExecutionLevel": "highestAvailable",
     "verifyUpdateCodeSignature": false,
     "signingHashAlgorithms": ["sha256"],

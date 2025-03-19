@@ -1,3 +1,8 @@
+/**
+ * 连接相关逻辑
+ * 连接，断开连接，获取实时流量/延迟时间，设置端口
+ */
+
 import { ref, watch } from "vue";
 import {
   startXray,
@@ -5,42 +10,67 @@ import {
   disconnect,
   getTraffic,
   getLatency,
+  setProxy,
+  getIpInfo,
 } from "@/utils/yohub.desktop";
+
 import { connectStatus } from "@/utils/yohub.store";
 import { connectionStatusMap, connectionStatusEnum } from "@/pages/home/config";
 import { useAppStore } from "@/stores";
-
+import { ElMessage } from "element-plus";
 let trafficInterval: any = null;
+// let latencyInterval: any = null;
 // 在线时长定时器
 let onlineTimerInterval: any = null;
 let _onlineTimes: number = 0;
-export default function useConnect() {
+export default function useConnectHook() {
   const loading = ref(false);
   const connectionStatus = ref(connectStatus().get());
   const onlineTimes = ref(_onlineTimes);
-
+  const currentLine = ref({
+    traffic_key: "",
+  });
   const handleStartXray = async () => {
-    await startXray();
+    await startXray("");
   };
   // 连接
-  const handleConnect = async () => {
-    loading.value = true;
-    connect({ host: "127.0.0.1", port: "10808" });
+  const handleConnect = async (line: any, mode: string = "proxy") => {
+    if (loading.value) {
+      return ElMessage.warning("正在连接中，请稍后...");
+    }
+    // 检查归属地
+    getIpInfo();
 
-    connectionStatus.value = connectionStatusMap.connecting;
-    setTimeout(() => {
-      _getTraffic();
-      connectionStatus.value = connectionStatusMap.connected;
-      _getOnlineTime();
-      loading.value = false;
-    }, 3000);
+    loading.value = true;
+    currentLine.value = line;
+    connect({ mode: mode, port: line.proxy_port })
+      .then((res) => {
+        connectionStatus.value = connectionStatusMap.connecting;
+        setTimeout(() => {
+          _getTraffic(currentLine.value);
+          connectionStatus.value = connectionStatusMap.connected;
+          _getOnlineTime();
+          loading.value = false;
+        }, 1000);
+      })
+      .catch((err) => {
+        console.error("连接失败", err);
+        ElMessage.error("连接失败");
+        loading.value = false;
+      });
   };
 
+  // 只设置端口
+  const onlyConnect = async (line: any) => {
+    if (connectionStatus.value.status === connectionStatusEnum.CONNECTED) {
+      currentLine.value = line;
+      await setProxy({ port: line.proxy_port });
+    }
+  };
   watch(connectionStatus, (newValue) => {
     useAppStore().setOnlineStatus(newValue);
     connectStatus().set(newValue);
   });
-
   // 断开连接
   const handleDisconnect = () => {
     return new Promise((resolve, reject) => {
@@ -56,6 +86,7 @@ export default function useConnect() {
         })
         .catch((err) => {
           console.error("断开连接失败", err);
+          ElMessage.error("断开连接失败");
           reject(err);
         });
     });
@@ -88,13 +119,18 @@ export default function useConnect() {
   };
 
   // 获取实时流量/延迟时间 =============
-  const _getTraffic = () => {
-    getTraffic();
+  const _getTraffic = (line: any) => {
+    getTraffic(line?.traffic_key || "");
     getLatency();
     trafficInterval = setInterval(() => {
-      getTraffic();
+      const _traffic_key =
+        currentLine.value?.traffic_key || line?.traffic_key || "";
+      getTraffic(_traffic_key);
       getLatency();
-    }, 60000);
+    }, 3 * 1000);
+    // latencyInterval = setInterval(() => {
+    //   getLatency();
+    // }, 3 * 1000);
   };
   const _getOnlineTime = () => {
     _onlineTimes = 0;
@@ -111,6 +147,10 @@ export default function useConnect() {
       clearInterval(trafficInterval);
       trafficInterval = null;
     }
+    // if (latencyInterval) {
+    //   clearInterval(latencyInterval);
+    //   latencyInterval = null;
+    // }
     if (onlineTimerInterval) {
       _onlineTimes = 0;
       onlineTimes.value = 0;
@@ -127,5 +167,6 @@ export default function useConnect() {
     handleDisconnect,
     handleLogoutDisconnect,
     clearAllInterval,
+    onlyConnect,
   };
 }

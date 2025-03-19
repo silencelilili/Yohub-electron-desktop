@@ -21,7 +21,7 @@
 
       <div>
         <el-checkbox v-model="checkbox"
-          >已阅读并同意：Youhub帐号注销协议</el-checkbox
+          >已阅读并同意：Yohub帐号注销协议</el-checkbox
         >
       </div>
     </div>
@@ -45,6 +45,21 @@ const userStore = useUserStore();
 const router = useRouter();
 const checkbox = ref(false);
 const handleDestroy = () => {
+  ElMessageBox.confirm("注销账号后，无法找回帐号，确认注销？", "提示", {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning',
+      center: true,
+      beforeClose: (action, instance, done) => {
+        if (action === 'confirm') {
+          _destroy()
+          done()
+        }
+      }
+  })
+};
+
+const _destroy = () => {
   const loading = ElLoading.service({
     lock: true,
     text: "正在注销",
@@ -65,7 +80,7 @@ const handleDestroy = () => {
         router.push("/login");
       });
   });
-};
+}
 </script>
 <style lang="less" scoped>
 .destroy-wrap {

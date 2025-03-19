@@ -32,11 +32,35 @@ export function updatePassword(data: {
 }) {
   return request.post("/user/password", data);
 }
+
 /**
- * 重置密码
+ * 忘记密码-发送邮箱验证码
+ * @param {
+ * scene_type: 0 注册; 1 忘记密码; 2 修改邮箱
+ * email: string
+ * }
  */
-export function resetPassword(data: { email: string }) {
-  return request.post("/user/passwd_reset", data);
+export const sendEmailCode = (data: { email: string; scene_type: number }) => {
+  return request.post("/user/send_code", data);
+};
+
+/**
+ * 忘记密码-验证邮箱验证码
+ */
+export const verifyEmailCode = (data: {
+  email: string;
+  email_code: string;
+}) => {
+  return request.post("/user/verify_code", data);
+};
+/**
+ * 忘记密码-设置新密码
+ */
+export function resetPassword(data: {
+  new_password: string;
+  confirm_new_password: string;
+}) {
+  return request.post("/user/reset_pwd", data);
 }
 
 /**
@@ -54,9 +78,20 @@ export function bindEmail(data: { email: string; code: string }) {
 /**
  * 修改邮箱
  */
-export function updateEmail(data: { newemail: string; code: string }) {
+export function updateEmail(data: { newemail: string; email_code: string }) {
   return request.post("/user/email", data);
 }
+/**
+ * 绑定邮箱 / 修改邮箱 - 发送邮箱验证码
+ * @param data
+ * @returns
+ */
+export const sendEmailVerifyCode = (data: {
+  newemail: string;
+  scene_type: number;
+}) => {
+  return request.post("/user/email_verify_code", data);
+};
 
 /**
  * 获取用户邀请信息
@@ -75,8 +110,8 @@ export const getNoticeContent = () => {
  * 通过订阅地址拉取配置-PC
  */
 /** 订阅类型 */
-export type SubType = "json" | "clash" | "singbox" | "v2rayjson" | "sip008";
-export function getConfigSub(token: string, subtype: SubType) {
+// export type SubType = "json" | "clash" | "singbox" | "v2rayjson" | "sip008";
+export function getConfigSub(token: string, subtype: string) {
   return request.post(`/sub/${token}/${subtype}`, {});
 }
 
@@ -86,6 +121,15 @@ export function getConfigSub(token: string, subtype: SubType) {
 export function getNodesList() {
   return request.post("/user/query_nodes", {});
 }
+/**
+ * 获取线路列表
+ * @param data
+ * @returns
+ * @description 返回加密了的线路列表信息，需要进行对称解密
+ */
+export function getLinesList() {
+  return request.post("/user/query_lines", {});
+}
 
 /**
  * 信息上报
@@ -93,4 +137,28 @@ export function getNodesList() {
 
 export const report = (data: IReportParams) => {
   return request.post("/user/clients/report", data);
+};
+
+/**
+ * 获取在线终端列表
+ */
+export const getTerminals = () => {
+  return request.post("/user/query_online_terminals", {});
+};
+
+/**
+ * 终端解绑
+ * @param data {
+ * user_client_rel_id: '用户与终端关系ID，唯一标识；在线终端接口返回值里的ID；'
+ * }
+ */
+export const delTerminals = (data: { user_client_rel_id: string }) => {
+  return request.post("/user/del_terminal", data);
+};
+
+/**
+ * 获取国旗/位置
+ */
+export const getFlag = () => {
+  return request.post("/user/clients/flag");
 };

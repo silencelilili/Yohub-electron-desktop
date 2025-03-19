@@ -56,13 +56,13 @@ export function userDestroy() {
 }
 
 /**
- * 用户注册-发送邮箱验证码
+ * 注册-发送邮箱验证码
  * @param {
- * sceneType: 0 注册; 1 忘记密码; 2 修改邮箱
+ * scene_type: 0 注册; 1 忘记密码; 2 修改邮箱
  * email: string
  * }
  */
-export const sendEmailCode = (data: any) => {
+export const registerSendEmailCode = (data: any) => {
   return request.post("/auth/send_code", data);
 };
 

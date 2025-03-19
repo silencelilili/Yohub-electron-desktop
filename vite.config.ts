@@ -17,7 +17,6 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
 import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -90,7 +89,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://1119.yohub.online/", // 目标跨域服务器地址 https://yohub.online
+        target: "https://yopnl250111.yohub.net", // "https://1119.yohub.online/",// 目标跨域服务器地址 https://1119.yohub.online/
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },

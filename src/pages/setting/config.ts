@@ -24,15 +24,15 @@ export const navList = [
     ).href,
     path: "",
   },
-  {
-    label: "menu.networkRepair", // 网络修复
-    component: NetworkRepair,
-    icon: new URL(
-      "@/assets/images/users/icon_networkRepair@2x.png",
-      import.meta.url
-    ).href,
-    path: "",
-  },
+  // {
+  //   label: "menu.networkRepair", // 网络修复
+  //   component: NetworkRepair,
+  //   icon: new URL(
+  //     "@/assets/images/users/icon_networkRepair@2x.png",
+  //     import.meta.url
+  //   ).href,
+  //   path: "",
+  // },
   {
     label: "menu.startupAuto", // 开机自启
     component: StartupAuto,
@@ -41,12 +41,12 @@ export const navList = [
       import.meta.url
     ).href, //"icon_startupAuto@2x.png",
   },
-  {
-    label: "menu.realName", // 实名认证
-    component: RealName,
-    icon: new URL("@/assets/images/users/icon_realName@2x.png", import.meta.url)
-      .href, //"icon_realName@2x.png",
-  },
+  // {
+  //   label: "menu.realName", // 实名认证
+  //   component: RealName,
+  //   icon: new URL("@/assets/images/users/icon_realName@2x.png", import.meta.url)
+  //     .href, //"icon_realName@2x.png",
+  // },
   {
     label: "menu.logoutAccount", // 注销账号
     component: LogoutAccount,

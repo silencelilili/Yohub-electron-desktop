@@ -32,13 +32,13 @@
               </div>
               <div class="flex-between-center mt-2">
                 <span class="progress-text used-text"
-                  >过去用量 {{ transferData.total }}</span
+                  >过去用量 {{ userInfo?.transfer_used_convert }}</span
                 >
                 <span class="progress-text today-text"
-                  >今日用量 {{ transferData.today }}</span
+                  >今日用量 {{ userInfo?.transfer_today_convert }}</span
                 >
                 <span class="progress-text unused-text"
-                  >剩余流量 {{ transferData.enable }}</span
+                  >剩余流量 {{ userInfo?.transfer_surplus_convert }}</span
                 >
               </div>
             </div>
@@ -56,7 +56,7 @@
             <SubscribeVue type="user" />
           </el-tab-pane>
           <el-tab-pane label="我的历史订单" name="2">
-            <OrderListVue />
+            <OrderListVue v-if="activeName === '2'" />
           </el-tab-pane>
         </el-tabs>
       </el-card>
@@ -89,18 +89,24 @@ const transferData = ref({
   enable: "0B", // 账户当前可用流量
   today: "0B", // 账户今日所用流量
   total: "0B",
+  surplus: "0B"
 });
 
 onMounted(async () => {
-  if(userInfo.value?.class === 0){
-    transferData.value = {
-      enable: formatByteSize(userInfo.value?.transfer_enable || (0 as number)),
-      today: formatByteSize(userInfo.value?.transfer_today || (0 as number)),
-      total: formatByteSize(userInfo.value?.transfer_total || (0 as number)),
-    };
-  }
+  // if(userInfo.value?.class === 0){
+  //   transferData.value = judgeTransfer(userInfo.value)
+  // }
 });
-
+// 计算流量
+const judgeTransfer = (data = { transfer_enable: 0, transfer_today: 0, transfer_total: 0 }) => {
+  const surplus = data.transfer_enable - data.transfer_today - data.transfer_total;
+  return {
+    surplus: formatByteSize(surplus),
+    enable: formatByteSize(data.transfer_enable || (0 as number)),
+    today: formatByteSize(data.transfer_today || (0 as number)),
+    total: formatByteSize(data.transfer_total || (0 as number)),
+  };
+};
 const _getProgressWidth = (
   data = { transfer_enable: 0, transfer_today: 0, transfer_total: 0 }
 ) => {

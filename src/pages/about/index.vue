@@ -4,7 +4,7 @@
       <h2>Yohub.net</h2>
       <p class="my-4">V{{ version }}</p>
       <el-button link @click="handleCheckVersion">
-        <el-icon color="mr-2"><RefreshRight /></el-icon> 检查版本
+        <el-icon color="mr-4"><RefreshRight /></el-icon> 检查版本
       </el-button>
     </div>
     <div class="">
@@ -28,7 +28,8 @@
 import { ref } from "vue";
 import { RefreshRight } from "@element-plus/icons-vue";
 import protocolsPage from "../protocols/index.vue";
-const version = ref("1.0.3");
+import pkg from "../../../package.json";
+const version = ref(pkg.version);
 const protocolsRef = ref();
 const handleCheckVersion = () => {
   ElMessage.success("当前已是最新版本");

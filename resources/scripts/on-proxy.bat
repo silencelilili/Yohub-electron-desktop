@@ -1,7 +1,7 @@
 @echo off
  
-rem 设置代理服务器地址（格式IP:端口），可按实际自行修改
-set proxy_server=127.0.0.1:10809
+rem 设置代理服务器地址（格式IP:端口），可按实际自行修改, 端口：变量
+set proxy_server="socks://127.0.0.1:10809"
  
 rem 设置代理例外地址（IP或域名多条以;相隔,支持通配符*）其中如果包含<local>，则请勿将代理服务器用于本地地址选项将勾上 1.1.1.1;<local>
 set proxy_exceptions="1.1.1.1;<local>"
@@ -15,6 +15,6 @@ reg add %regpath% /v "ProxyEnable" /t  "REG_DWORD" /d 1 /f
  
 reg add %regpath% /v "ProxyOverride" /t "REG_SZ" /d %proxy_exceptions% /f
  
-reg add %regpath% /v "ProxyServer" /t "REG_SZ" /d "%proxy_server%" /f
+reg add %regpath% /v "ProxyServer" /t "REG_SZ" /d %proxy_server% /f
  
 pause

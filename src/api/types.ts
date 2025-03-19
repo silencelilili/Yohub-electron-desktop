@@ -80,6 +80,10 @@ export interface IUserInfo {
   last_check_in_time?: string;
   /** 最后登录时间 */
   last_login_time?: string;
+  /** 用户是否剩余流量,true:有流量，false: 无流量 */
+  isEnable?: boolean;
+  /** 用户无流量时的提示信息 */
+  alertMsg?: string;
   [x: string]: any;
 }
 /**
@@ -87,9 +91,15 @@ export interface IUserInfo {
  */
 export interface IReportParams {
   /** type：终端类型：windows，macos，ios，android   */
-  type: string;
+  client_type: string;
   /** version：终端版本：不同类型终端对应的版本号   */
-  version: string;
+  client_version: string;
+  /** 终端ID，唯一标识   */
+  client_id: string;
+  /** 终端名称 */
+  client_name: string;
+  /** 上报日期，格式：年-月-日，举例：2025-01-11 */
+  report_date?: string;
   /** ipLibMd5：分流策略：IP库文件MD5值   */
   ipLibMd5?: string;
   /** geoipMd5：分流策略：geoip文件MD5值   */
@@ -100,7 +110,11 @@ export interface IReportParams {
   totalUsedTraffic?: string;
   /** 7daysUsedTotalTraffic：近7天使用的总流量（包含上传和下载）   */
   sevenDaysUsedTotalTraffic?: string;
-  /** 7daysUpAndDownTraffic：近7天上传/下载流量 */
-  sevenDaysUpAndDownTraffic?: string;
+  /** 7daysUpAndDownTraffic：近7天上传/下载流量, 数组：7个对象，每个对象有u和d；u：上传流量(单位：B)，d：下载流量(单位：B)；date：日期；PHP程序来解析字符串为json对象；   */
+  sevenDaysUpAndDownTraffic?: string; // [{date: string, u: number, d: number}]
+  /** singbox_mac_json文件MD5值 */
+  singboxMacJsonMd5?: string;
+  /** singbox_win_json文件MD5值 */
+  singboxWinJsonMd5?: string;
   [x: string]: any;
 }

@@ -1,4 +1,5 @@
-import { app, contextBridge, ipcRenderer } from "electron";
+import { app, shell, contextBridge, ipcRenderer } from "electron";
+// import log from "./log";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", withPrototype(ipcRenderer));
@@ -27,8 +28,15 @@ contextBridge.exposeInMainWorld("$Yohub", {
   $store: (type: string, data: any) =>
     ipcRenderer.invoke("store:store", type, data),
   $platform: process.platform,
+  onWechatLoginCallback: (callback: Function) => ipcRenderer.on('wechat-login-callback', callback),
 });
 
+// contextBridge.exposeInMainWorld("$log", {
+//   info: (message: any) => log.info(message),
+//   error: (message: any) => log.error(message),
+//   warn: (message: any) => log.warn(message),
+//   debug: (message: any) => log.debug(message),
+// })
 // --------- Preload scripts loading 页面过渡效果 ---------
 // function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
 //   return new Promise(resolve => {

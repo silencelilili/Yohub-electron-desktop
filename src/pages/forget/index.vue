@@ -49,18 +49,18 @@
         </div>
         <div class="my-10">
           <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="auto" status-icon class="w-full">
-            <el-form-item prop="password">
-              <el-input v-model="passwordForm.password" type="password" placeholder="请输入登录密码" show-password @change="inputChange" />
+            <el-form-item prop="new_password">
+              <el-input v-model="passwordForm.new_password" type="password" minlength="8" maxlength="16" placeholder="请输入登录密码" show-password @change="inputChange" />
             </el-form-item>
-            <el-form-item prop="confirm_password">
-              <el-input v-model="passwordForm.confirm_password" type="password" placeholder="请确认登录密码" show-password />
+            <el-form-item prop="confirm_new_password">
+              <el-input v-model="passwordForm.confirm_new_password" type="password" minlength="8" maxlength="16" placeholder="请确认登录密码" show-password />
             </el-form-item>
-            <el-form-item >
+            <!-- <el-form-item >
               <div>密码强度</div>
               <PasswordStrength ref="passwordStrengthRef" />
-            </el-form-item>
+            </el-form-item> -->
           </el-form>
-          <p class="secondary-color">密码必须为8-16位，包含大小写字母、数字或特殊字符至少3种类型字符的组合，请勿使用旧密码。  </p>
+          <p class="secondary-color">密码长度为8-16位，请勿使用旧密码。 </p>
           <p class="secondary-color">您将从所有设备退出此账号。</p>
         </div>
         <el-button type="primary" size="large" class="w-full" @click="handleReset">重置密码</el-button>
@@ -76,7 +76,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { CloseBold } from '@element-plus/icons-vue'
 import { validatePassword } from '@/utils/validate'
-import { sendEmailCode } from '@/api/auth'
+import { sendEmailCode, verifyEmailCode, resetPassword } from '@/api/user'
 
 const router = useRouter()
 
@@ -113,12 +113,12 @@ const handleSendEmailCode =  async () => {
     try {
        await sendEmailCode({
         email: emailForm.email,
-        sceneType: 1
+        scene_type: 1
       })
       ElMessage.success('验证码已发送，请查收邮箱');
       toStep(2)
     } catch (error) {
-      ElMessage.error('发送验证码失败');
+      // ElMessage.error('发送验证码失败');
     }
   }
 }
@@ -129,20 +129,23 @@ const handleSendEmailCode =  async () => {
  ****************************************************************/
 
 const emailCode = ref()
-const onCodeFinish = (code: string) => {
-  console.log('code====', code)
- }
 // TODO:校验验证码是否正确
-const validateCode = () => {
-  ElMessage.success('验证码验证成功');
-  toStep(3)
+const onCodeFinish = async (code: string) => {
+  console.log('code====', code)
+  try {
+    await verifyEmailCode({ email: emailForm.email, email_code: code })
+    ElMessage.success('验证码验证成功');
+    toStep(3)
+  } catch (error) {
+    
+  }
 }
 // 重新发送
 const handleResend = async () => {
  try {
     await sendEmailCode({
       email: emailForm.email,
-      sceneType: 1
+      scene_type: 1
     })
     ElMessage.success('验证码已发送，请查收邮箱');
   } catch (error) {
@@ -156,21 +159,21 @@ const handleResend = async () => {
 
 const passwordFormRef = ref();
 const passwordForm = reactive({
-  password: '',
-  confirm_password: '',
+  new_password: '',
+  confirm_new_password: '',
 });
 const passwordRules = {
-  password: [
+  new_password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 8, max: 16, message: '密码长度8至16个字符', trigger: 'blur' },
-    { validator: validatePassword, trigger: 'blur' },
+    // { validator: validatePassword, trigger: 'blur' },
   ],
-  confirm_password: [
+  confirm_new_password: [
     { required: true, message: '请输入确认密码', trigger: 'blur' },
     { min: 8, max: 16, message: '确认密码长度8至16个字符', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
-        if (value !== passwordForm.password) {
+        if (value !== passwordForm.new_password) {
           callback(new Error('两次输入密码不一致'));
         } else {
           callback();
@@ -183,7 +186,7 @@ const passwordRules = {
 
 const passwordStrengthRef = ref()
 const inputChange = () => {
-  passwordStrengthRef.value.checkPassword(passwordForm.password)
+  passwordStrengthRef.value.checkPassword(passwordForm.new_password)
 }
 
 // 确定重置密码
@@ -191,8 +194,13 @@ const handleReset = async () => {
   if (!passwordFormRef.value) return;
   const valid = await passwordFormRef.value.validate();
   if (valid) {
-    // TODO:调用API重置密码
+    // 调用API重置密码
     try {
+      const _params = {
+        email: emailForm.email,
+        ...passwordForm
+      }
+      await resetPassword(_params)
       ElMessage.success('密码重置成功');
       // 跳转到登录页面
       router.push('/login');

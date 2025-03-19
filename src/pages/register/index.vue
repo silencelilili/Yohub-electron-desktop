@@ -12,9 +12,9 @@
         size="large"
         status-icon
       >
-        <el-form-item prop="name">
+        <!-- <el-form-item prop="name">
           <el-input v-model="formState.name" maxlength="30" placeholder="请输入昵称" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item prop="email">
           <el-input
             v-model="formState.email"
@@ -34,17 +34,19 @@
             v-model="formState.password"
             type="password"
             minlength="8"
+            maxlength="16"
             placeholder="请输入登录密码"
             show-password
             @input="inputChange"
           />
-          <PasswordStrength ref="passwordStrengthRef" />
+          <!-- <PasswordStrength ref="passwordStrengthRef" /> -->
         </el-form-item>
         <el-form-item prop="confirm_password">
           <el-input
             v-model="formState.confirm_password"
             type="password"
             minlength="8"
+            maxlength="16"
             placeholder="请确认登录密码"
             show-password
           />
@@ -74,7 +76,7 @@
 </template>
 <script lang="ts" setup>
 import { register } from "@/api/auth";
-import type { ComponentSize, FormInstance, FormRules } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import PasswordStrength from "@/components/PasswordStrength.vue";
 import CountdownCode from "@/components/CountdownCode.vue";
 import { validateUsername, validateEmail, validatePassword } from '@/utils/validate'
@@ -83,18 +85,18 @@ const router = useRouter();
 const ruleFormRef = ref();
 const formState = reactive({
   tos: true,
-  name: "",
+  // name: "",
   email: "",
   emailcode: "",
   password: "",
   confirm_password: "",
   invite_code: "", // 邀请码
 });
-const rules = {
-  name: [
-    { required: true, message: "请输入昵称", trigger: "blur" },
-    { validator: validateUsername, trigger: 'blur'}
-  ],
+const rules: FormRules = {
+  // name: [
+  //   { required: true, message: "请输入昵称", trigger: "blur" },
+  //   { validator: validateUsername, trigger: 'blur'}
+  // ],
   email: [
     { required: true, message: "请输入邮箱", trigger: "blur" },
     { validator: validateEmail, trigger: 'blur'}
@@ -105,8 +107,8 @@ const rules = {
   ],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    // { min: 8, message: "密码必须为至少8个字符、大小写字母和符号的组合", trigger: "blur" },
-    { validator: validatePassword, trigger: 'blur'}
+    { min: 8, max: 16, message: '密码长度8至16个字符', trigger: 'blur' },
+    // { validator: validatePassword, trigger: 'blur'}
   ],
   confirm_password: [
     { required: true, message: "请输入确认密码", trigger: "blur" },
@@ -151,7 +153,7 @@ const handleSubmit = async (formEl: FormInstance | undefined) => {
 
 const passwordStrengthRef = ref()
 const inputChange = () => {
-  passwordStrengthRef.value.checkPassword(formState.password)
+  // passwordStrengthRef.value.checkPassword(formState.password)
 }
 // 登录
 const toLogin = () => {

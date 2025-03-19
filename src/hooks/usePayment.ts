@@ -4,6 +4,7 @@ import {
   getStripeStatus,
   stripePayment,
 } from "@/api/order";
+import { ElMessageBox } from "element-plus";
 import { ref } from "vue";
 
 /**
@@ -12,14 +13,19 @@ import { ref } from "vue";
  */
 export const useStripePayment = () => {
   const pid = ref("");
-  const maxPollingTime = ref(10 * 60 * 1000);
+  const maxPollingTime = ref(30 * 60 * 1000);
   // 调用支付接口
   const makePayment = async (data: any) => {
     return new Promise((resolve, reject) => {
-      pid.value = data.pid;
       stripePayment(data)
         .then((res: any) => {
           if (res?.ret === 1) {
+            maxPollingTime.value = 30 * 60 * 1000;
+            pid.value = data.pid;
+            window.$Yohub.$desktop({
+              type: "openExternal",
+              data: res.url,
+            });
             resolve(res);
           } else {
             reject(res);
@@ -28,6 +34,25 @@ export const useStripePayment = () => {
         .catch((err: any) => {
           reject(err);
         });
+    });
+  };
+  const open = () => {
+    ElMessageBox.confirm("请确认是否完成支付？", "Stripe支付", {
+      confirmButtonText: "支付完成",
+      cancelButtonText: "支付未完成",
+      center: true,
+      showClose: false,
+      closeOnClickModal: false,
+      closeOnPressEscape: false,
+      beforeClose: (action, instance, done) => {
+        if (action === "confirm") {
+          queryPaymentResult().then((res) => {
+            done();
+          });
+        } else {
+          done();
+        }
+      },
     });
   };
   // 轮询查询支付结果
@@ -42,6 +67,7 @@ export const useStripePayment = () => {
         }
 
         try {
+          console.log("pid::::", pid.value);
           const res: any = await getStripeStatus(pid.value); // 替换成实际接口地址
           if (res?.result === 1) {
             resolve(res);
@@ -64,6 +90,7 @@ export const useStripePayment = () => {
   return {
     pid,
     makePayment,
+    open,
     queryPaymentResult,
     stopPolling,
   };
@@ -74,15 +101,16 @@ export const useStripePayment = () => {
  * @returns
  */
 export const useAlipayPayment = () => {
-  const pid = ref("");
-  const maxPollingTime = ref(10 * 60 * 1000); // 30分钟换算成毫秒
+  const _pid = ref("");
+  const maxPollingTime = ref(30 * 60 * 1000); // 30分钟换算成毫秒
   // 调用支付接口
   const makePayment = async (data: any) => {
     return new Promise((resolve, reject) => {
       getAlipayQrcode(data)
         .then((res: any) => {
+          maxPollingTime.value = 30 * 60 * 1000;
+          _pid.value = res?.pid || "";
           resolve(res);
-          pid.value = data.pid;
         })
         .catch((err) => {
           reject(err);
@@ -102,7 +130,9 @@ export const useAlipayPayment = () => {
         }
 
         try {
-          const res: any = await getAlipayStatus(pid); // 替换成实际接口地址
+          console.log("pollAlipayStatusApi", _pid.value || pid);
+          const res: any = await getAlipayStatus(_pid.value || pid); // 替换成实际接口地址
+          console.log("res", res);
           if (res?.result === 1) {
             resolve();
           } else {
@@ -123,7 +153,7 @@ export const useAlipayPayment = () => {
   }
 
   return {
-    pid,
+    pid: _pid,
     makePayment,
     pollAlipayStatusApi,
     stopPolling,

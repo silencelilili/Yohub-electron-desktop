@@ -1,5 +1,5 @@
 <template>
-  <el-card shadow="never" class="m-4 h-100%">
+  <el-card shadow="never" class="m-4 h-100% " style="overflow:auto">
     <!-- 工单列表 -->
     <div v-if="pageType === 'list'">
       <div class="flex-between-center mb-4">
@@ -21,7 +21,7 @@
             <span class="secondary-color">{{ item.datetime }}</span>
           </div>
           <div class="ticket-item_button">
-            <el-tag class="mr-6" effect="dark" round>{{ item.status }}</el-tag>
+            <el-tag class="mr-6" effect="dark" round>{{ item.status_name }}</el-tag>
 
             <!-- <el-button v-if="item.status === 'closed'" class="mr-6" disabled
               >已结单</el-button
@@ -110,7 +110,7 @@
           ]"
         >
           <el-input
-            v-model.number="ticketForm.comment"
+            v-model="ticketForm.comment"
             type="textarea"
             :rows="4"
             placeholder="请输入您遇到的问题，建议或需求..."
@@ -145,7 +145,7 @@
         <h3 class="my-4 flex justify-between">
           <span>{{ ticketDetailData.title }}</span>
           <el-tag class="mr-6" effect="dark" round>{{
-            ticketDetailData.status
+            ticketDetailData.status_name
           }}</el-tag>
         </h3>
         <div>
@@ -159,14 +159,15 @@
             {{ ticketDetailData.datetime }}
           </el-text>
           <br />
-          <el-text type="primary"> {{ ticketDetailData.type }}问题 </el-text>
+          <el-text type="primary"> {{ ticketDetailData.type_name }}问题 </el-text>
         </div>
       </div>
 
       <!-- 回复 -->
       <div class="p-6 ticket-detail-content bg-color2">
-        <div class="text-right">
-          <el-button plain type="primary"
+        <!-- TODO:回复功能 - 待完善 -->
+        <div v-if="ticketDetailData.status !== 'closed'" class="text-right">
+          <el-button plain type="primary" @click="handleReply"
             ><el-icon><Plus /></el-icon> 回复</el-button
           >
         </div>
@@ -188,15 +189,35 @@
               </el-text>
             </div>
           </template>
+
+          <div v-if="isReply" class="reply ">
+             <el-input
+              v-model="replyComment"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入"
+            />
+            <div class="text-right w-full mt-4">
+              <el-button type="primary" @click="replySure">
+                 确定
+              </el-button>
+
+              <el-button
+                @click="cancelReply"
+                >取消</el-button
+              >
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </el-card>
 </template>
 <script lang="ts" setup>
-import { getTicketList, createTicket, getTicketDetail } from "@/api/ticket";
+import { getTicketList, createTicket, getTicketDetail, replyTicket } from "@/api/ticket";
 import { ArrowRight, ArrowLeft, Plus } from "@element-plus/icons-vue";
-import { reactive, ref } from "vue";
+import { ElMessage } from "element-plus";
+import { onMounted, reactive, ref } from "vue";
 
 type PageType = "list" | "detail" | "create";
 const pageType = ref<PageType>("list");
@@ -249,6 +270,8 @@ const ticketDetailData = ref({
   content: [],
   comment: "",
   datetime: "",
+  status: '',
+  status_name: '',
 });
 const handleOpenDetail = async (item: any) => {
   try {
@@ -260,6 +283,28 @@ const handleOpenDetail = async (item: any) => {
   } catch (error) {
     console.log(error);
   }
+};
+
+// 工单回复
+const isReply = ref(false);
+const replyComment = ref("");
+const handleReply = () => {
+  isReply.value = !isReply.value;
+};
+
+const replySure = async () => {
+  const _params = {
+    id: ticketDetailData.value.id,
+    comment: replyComment.value,
+  };
+  console.log(_params);
+  await replyTicket(_params);
+  cancelReply()
+  handleOpenDetail({id: ticketDetailData.value.id})
+};
+const cancelReply = () => {
+  isReply.value = false;
+  replyComment.value = ''
 };
 </script>
 <style lang="less" scoped>

@@ -16,13 +16,15 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import { sendEmailCode } from '@/api/auth'
+import { sendEmailCode, sendEmailVerifyCode } from '@/api/user'
+import { registerSendEmailCode } from '@/api/auth'
 
 const props = defineProps({
   value: {
     type: String,
     default: ""
   },
+  /** 0注册，1忘记密码，2修改邮箱 */
   sceneType: {
     type: Number,
     default: 0
@@ -42,9 +44,15 @@ const startCountdown = async () => {
   try {
      const _data = {
       email: props.value,
-      sceneType: props.sceneType
+      scene_type: props.sceneType
+     }
+    if(props.sceneType === 0) {
+      await registerSendEmailCode(_data)
+    } else if(props.sceneType === 1) {
+      await sendEmailCode(_data)
+    } else if (props.sceneType === 2) {
+      await sendEmailVerifyCode({newemail: _data.email, scene_type: _data.scene_type})
     }
-    await sendEmailCode(_data)
     ElMessage.success('验证码已发送，请查收邮箱');
   
     countdownInfo.value.isDisabled = true;

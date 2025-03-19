@@ -2,17 +2,17 @@
   <div class="py-4">
     <el-table
       :data="historyOrderData"
-      style="width: 100%"
+      style="width: 180%"
       size="small"
       :header-cell-style="{ background: '#E8EDFA', color: '#333333' }"
       empty-text="无历史订单"
       >
       <el-table-column prop="id" label="订单编号" width="90" />
-      <el-table-column prop="product_type" label="购买服务卡" />
+      <el-table-column prop="product_name" label="购买服务卡" />
       <el-table-column prop="price" label="订单金额" />
       <el-table-column prop="status_name" label="订单状态" />
       <el-table-column prop="create_time" label="创建时间" />
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作" width="130">
         <template #default="scope">
           <el-button
             link
@@ -31,6 +31,15 @@
           >
             支付
           </el-button>
+           <el-button
+            v-if="scope.row.status === 'pending_payment'"
+            link
+            type="danger"
+            size="small"
+            @click="handleOrderCancel(scope.row)"
+          >
+            取消
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -45,7 +54,6 @@
     <!-- 订单详情 -->
     <el-dialog v-model="dialogVisible" title="订单详情" width="50%">
       <el-descriptions title="基本信息" :column="2" class="detail-box">
-        <el-descriptions-item label="商品类型：">{{orderDetail.product_type_text}}</el-descriptions-item>
         <el-descriptions-item label="商品名称：">{{orderDetail.product_name}}</el-descriptions-item>
         <el-descriptions-item label="订单编号：">{{orderDetail.id}}</el-descriptions-item>
         <el-descriptions-item label="订单金额：">{{orderDetail.price}}</el-descriptions-item>
@@ -53,28 +61,57 @@
         <el-descriptions-item label="订单状态：">{{orderDetail.status_name }}</el-descriptions-item>
         <el-descriptions-item label="创建时间：">{{orderDetail.create_time }}</el-descriptions-item>
       </el-descriptions>
+    </el-dialog>
 
-      <el-descriptions title="商品内容" :column="2" class="detail-box">
-        <el-descriptions-item label="商品时长 (天)：">{{orderDetail.product_content.time}}</el-descriptions-item>
-        <el-descriptions-item label="等级时长 (天)：">{{orderDetail.product_content.class_time}}</el-descriptions-item>
-        <el-descriptions-item label="等级：">{{orderDetail.product_content.class }}</el-descriptions-item>
-        <el-descriptions-item label="可用流量 (GB)：">
-          {{orderDetail.product_content.bandwidth}}
-        </el-descriptions-item>
-        <el-descriptions-item label="速率限制 (Mbps)：">
-         {{orderDetail.product_content.speed_limit }}
-        </el-descriptions-item>
-        <el-descriptions-item label="同时连接IP限制：">
-          {{orderDetail.product_content.ip_limit===0?'不限制':orderDetail.product_content.ip_limit }}
-        </el-descriptions-item>
-      </el-descriptions>
+    <!-- 支付 -->
+     <el-dialog
+      v-model="payDialogVisible"
+      title="支付"
+      width="360"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :align-center="true"
+      center
+      @close="onPaymentSuccess"
+    >
+      <PaymentVue
+        ref="paymentRef"
+        :order-info="activeSubscribe"
+        :payType="activePayment"
+        @success="onPaymentSuccess"
+      />
+    </el-dialog>
+     <!-- stripe 支付结果查询弹窗-->
+    <el-dialog
+      v-model="stripeStatusDialogVisible"
+      title="Stripe支付"
+      width="360"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+      :align-center="true"
+      center
+    >
+      <div class="text-center p-3">请确认是否完成支付？</div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="handleStripeStatusCancel">支付未完成</el-button>
+          <el-button type="primary" :loading="stripLoading" @click="handleStripeStatusOk">
+            支付完成
+          </el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
   import { onMounted, defineProps, ref, nextTick, computed, reactive } from "vue";
-  import { getOrderList, getOrderDetail } from "@/api/order";
+  import { getOrderList, getOrderDetail, cancelOrder } from "@/api/order";
+  import { ElMessage, ElMessageBox } from "element-plus";
+  import PaymentVue from "@/components/Payment.vue";
+import { generateRandomString } from "@/utils";
+import { useStripePayment } from "@/hooks/usePayment";
 
   onMounted(async () => {
     getOrderListData();
@@ -116,16 +153,94 @@
     orderDetail.value = res.data
     dialogVisible.value = true
   };
-  // 支付
-  const handleOrderPay = (row: any) => {
-    console.log('row::::', row);
-    // router.push({
-    //   name: 'orderDetail',
-    //   params: {
-    //     id: row.id
-    //   }
-    // })
+  //  取消订单
+  const handleOrderCancel = async (row: any) => {
+    try {
+      await cancelOrder({id: row.id}) 
+      ElMessage.success('取消成功')
+      getOrderListData()
+    } catch (error) {
+      
+    }
   };
+
+// 支付 ---------------
+const activePayment = ref('')
+const activeSubscribe = ref()
+const payDialogVisible = ref(false)
+const paymentRef = ref()
+const stripePayment = useStripePayment();
+const stripeStatusDialogVisible = ref(false)
+
+const handleOrderPay = (row: any) => {
+  activeSubscribe.value = {
+    id: row.product_id,
+    name: row.product_name,
+    price: row.price,
+  }
+  activePayment.value = row.pay_type || 'f2f'
+  handlePay(row)
+};
+
+const handlePay = (data: any) => {
+  const _data = {
+    invoice_id: data.id,
+    amount: data.price,
+  };
+  if (activePayment.value === "f2f") {
+    payDialogVisible.value = true
+    nextTick(() => {
+      paymentRef.value.createQrcode(_data).then((res) => {
+        console.log("createAlipayQrcodeApi success ------", res);
+      });
+    });
+  } else if (activePayment.value === "stripe") {
+    const _params = {
+      ..._data,
+      price: data.price,
+      pid: generateRandomString(6),
+      success_url: 'https://www.yohub.net/'
+    };
+    stripePayment
+      .makePayment(_params)
+      .then((res) => {
+        console.log("useStripePayment.makePayment success ------", res);
+        stripeStatusDialogVisible.value = true;
+      })
+      .catch((err) => {
+        console.log("useStripePayment.makePayment error ------", err);
+        stripeStatusDialogVisible.value = true;
+      });
+  } else {
+    ElMessage.warning("暂不支持该支付方式");
+  }
+};
+
+const onPaymentSuccess = () => {
+  paymentRef.value.stopPoll();
+}
+
+const stripLoading = ref(false)
+// 关闭stripe支付状态弹窗
+const handleStripeStatusOk = () => {
+  stripLoading.value = true
+  stripePayment
+    .queryPaymentResult()
+    .then((res) => {
+      console.log("useStripePayment.queryPaymentResult success ------", res);
+      stripLoading.value = false
+      stripeStatusDialogVisible.value = false;
+      getOrderListData()
+    })
+    .catch((err) => {
+      console.log("useStripePayment.queryPaymentResult error ------", err);
+      stripLoading.value = false
+    });
+};
+const handleStripeStatusCancel = () => {
+  stripeStatusDialogVisible.value = false;
+  stripePayment.stopPolling()
+};
 </script>
 <style lang="less" scoped>
 .detail-box{
@@ -133,8 +248,8 @@
   padding: 8px;
   border-radius: 8px;
   margin-bottom: 12px;
-  .el-descriptions__body{
-    background-color: transparent;
+  :deep(.el-descriptions__body){
+    background-color: transparent !important;
   }
 }
 </style>

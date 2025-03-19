@@ -44,7 +44,7 @@ let template: MenuItemConstructorOptions[] = [
     },
   },
   {
-    label: "退出",
+    label: "退出应用",
     click: async () => {
       console.log("[tray] 退出");
       await quitApp();

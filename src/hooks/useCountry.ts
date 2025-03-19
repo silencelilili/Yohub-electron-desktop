@@ -3,7 +3,7 @@ import { h } from "vue";
 
 /**
  * 检测当前用户的所在地是否为中国大陆
- * 若是则弹出提示框
+ * 若是 则弹出提示框
  * @returns
  */
 export const useCountry = () => {
@@ -23,7 +23,7 @@ export const useCountry = () => {
           { style: "font-size: 16px" },
           "检测到您可能位于中国大陆 Yohub将无法正常工作 "
         ),
-        h("p", { style: "margin-top: 10px" }, "《隐私政策》和《服务协议》 "),
+        // h("p", { style: "margin-top: 10px" }, "《隐私政策》和《服务协议》 "),
       ]),
       showCancelButton: false,
       confirmButtonText: "退出APP",

@@ -6,7 +6,9 @@
  */
 import { app, session, WebContents, protocol } from "electron";
 import path from "node:path";
+import fs from "fs";
 import { parse } from "url";
+import crypto from "crypto";
 import { ShellService } from "./shell";
 export const eventKey: string = "BRIDGE_EVENT_KEY";
 
@@ -19,7 +21,10 @@ export const WEBUI_BASE_URL =
 export const WEBUI_URL_SUFFIX = WEBUI_BASE_URL.startsWith("http")
   ? ".html"
   : "";
-
+// 接口地址
+export const API_BASE_URL = app.isPackaged
+  ? "https://yopnl250111.yohub.net"
+  : "https://yopnl250111.yohub.net";
 export const build_resources = () => {
   const path = app.getAppPath();
   const parts = path.split("/");
@@ -225,4 +230,33 @@ export async function quitApp() {
     // 退出
     app.quit();
   }
+}
+
+// 计算文件 MD5
+export function calculateMD5(filePath: string) {
+  const hash = crypto.createHash("md5");
+  const fileStream = fs.createReadStream(filePath);
+
+  return new Promise((resolve, reject) => {
+    fileStream.on("error", (error) => {
+      resolve("");
+    });
+
+    fileStream.on("data", (chunk) => {
+      hash.update(chunk);
+    });
+
+    fileStream.on("end", () => {
+      resolve(hash.digest("hex"));
+    });
+  });
+}
+// 获取resource目录
+export function getXrayResourcePath() {
+  const PLUGINS_PATH = resourcePath() || path.join(__dirname, "../resources");
+  const PLATFORM_ARCH = process.platform + "-" + process.arch;
+  const XRAY_SERVICE_PATH = isWindows
+    ? `${PLUGINS_PATH}\\yohub-service\\${PLATFORM_ARCH}`
+    : `${PLUGINS_PATH}/yohub-service/${PLATFORM_ARCH}`;
+  return XRAY_SERVICE_PATH;
 }

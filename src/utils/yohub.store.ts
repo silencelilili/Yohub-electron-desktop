@@ -47,8 +47,42 @@ export function clearCookies(): void {
   });
 }
 
+export function getLocalStorage(key: string): any {
+  const value = localStorage.getItem(key);
+  return value ? JSON.parse(value) : null;
+}
+export function setLocalStorage(key: string, value: any): void {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+export function deleteLocalStorage(key: string): void {
+  localStorage.removeItem(key);
+}
+export function clearLocalStorage(): void {
+  localStorage.clear();
+}
+export function clearAllStorage(): void {
+  clearCookies();
+  clearLocalStorage();
+  clearSessionStorage();
+}
+
+export function getSessionStorage(key: string): any {
+  const value = sessionStorage.getItem(key);
+  return value ? JSON.parse(value) : null;
+}
+export function setSessionStorage(key: string, value: any): void {
+  sessionStorage.setItem(key, JSON.stringify(value));
+}
+export function deleteSessionStorage(key: string): void {
+  sessionStorage.removeItem(key);
+}
+export function clearSessionStorage(): void {
+  sessionStorage.clear();
+}
+
 /*********************************************************
  * 基础存储方法
+ * @description：本地文件持久化存储
  *********************************************************/
 /**
  * 设置本地存储
@@ -68,11 +102,11 @@ export async function deleteStore(key: string): Promise<boolean> {
 }
 
 /*********************************************************
- * 操作存储数据
+ * 业务数据存储
+ * @description：根据业务需求进行存储操作
  *********************************************************/
 /**
  * 订阅 数据存储操作
- * @description：本地文件持久化存储
  */
 export const subConfig = () => {
   function get() {

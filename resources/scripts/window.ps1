@@ -16,12 +16,12 @@ foreach ($address in $Addresses) {
         $reply = $ping.Send($address)
         
         if ($reply.Status -eq 'Success') {
-            Write-Host "$address :_: $($reply.RoundtripTime) ms"
+            Write-Host "$address :_: $($reply.RoundtripTime)"
         } else {
-            Write-Host "$address :_: 0 ms"
+            Write-Host "$address :_: 0"
         }
     } catch {
-        Write-Host "$address :_: 0 ms"
+        Write-Host "$address :_: 0"
     }
 }
 

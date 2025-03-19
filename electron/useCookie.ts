@@ -2,15 +2,14 @@ import { app, BrowserWindow, session, shell } from "electron";
 import { _setCookieArray } from "./net";
 import { store } from "./store";
 import log from "./log";
-const BASE_URL = "https://1119.yohub.online";
+import { API_BASE_URL } from "./utils";
 let cookiesArr: string[] = [];
 function useCookie(mainWindow: BrowserWindow | null) {
-  const filter = { urls: [`${BASE_URL}/*`] };
-  store.set("useCookie", filter);
+  const filter = { urls: [`${API_BASE_URL}/*`] };
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    if (details?.url?.startsWith(`${BASE_URL}`)) {
-      log.info("=========拦截到请求:" + details?.url);
+    if (details?.url?.startsWith(`${API_BASE_URL}`)) {
+      // log.info("=========拦截到请求:" + details?.url);
       if (
         details.requestHeaders &&
         details.requestHeaders?.Cookie &&
@@ -30,12 +29,12 @@ function useCookie(mainWindow: BrowserWindow | null) {
     filter,
     (details, callback) => {
       // console.log("--------拦截到响应:", details?.url);
-      log.info("--------拦截到响应:" + details?.url);
+      // log.info("--------拦截到响应:" + details?.url);
 
       if (details.responseHeaders && details.responseHeaders["set-cookie"]) {
         cookiesArr = _setCookieArray(
           details.responseHeaders["set-cookie"],
-          BASE_URL
+          API_BASE_URL
         );
         if (details.url.includes("user/logout")) {
           cookiesArr = [];
@@ -54,15 +53,15 @@ function useCookie(mainWindow: BrowserWindow | null) {
 
   session.defaultSession.webRequest.onBeforeRedirect(filter, (details) => {
     log.info("--------Redirecting:" + details?.url);
-    if (details.url.includes("user/payment/purchase/stripe")) {
-      if (details.responseHeaders && details.responseHeaders["location"]) {
-        log.info("Redirecting:", details.responseHeaders["location"]);
-        const _url = details.responseHeaders["location"][0];
-        shell.openExternal(_url);
-        // 这里可以自定义处理逻辑，比如取消重定向
-        // callback({cancel: true});
-      }
-    }
+    // if (details.url.includes("user/payment/purchase/stripe")) {
+    //   if (details.responseHeaders && details.responseHeaders["location"]) {
+    //     log.info("Redirecting:", details.responseHeaders["location"]);
+    //     const _url = details.responseHeaders["location"][0];
+    //     shell.openExternal(_url);
+    // 这里可以自定义处理逻辑，比如取消重定向
+    // callback({cancel: true});
+    //   }
+    // }
     // callback({ cancel: false });
   });
 }

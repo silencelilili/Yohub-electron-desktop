@@ -5,6 +5,7 @@ import type {
   AxiosRequestConfig,
   AxiosResponse,
 } from "axios";
+import log from '@/utils/logger'
 function jsonToFormData(config: any) {
   const formData = new FormData();
   // 循环传入的值转换formData
@@ -50,10 +51,12 @@ export class Request {
           return data;
         } else {
           if (data.msg) ElMessage.error(data.msg);
+         log.error(`[Renderer] url: ${ response.config?.url} -->`, data)
           return Promise.reject(data);
         }
       },
       (error: AxiosError) => {
+        log.error(`[Renderer] url: ${ error.config?.url} -->`, error)
         return Promise.reject(error.response);
       }
     );

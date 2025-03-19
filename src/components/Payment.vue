@@ -10,7 +10,7 @@
       </div>
     </div>
     <p class="flex-center">
-      <img class="w-5 mr-2" src="@/assets/images/pay-ali.png" />
+      <img class="w-16 mr-2" src="@/assets/images/pay-ali.png" />
       请用支付宝进行扫码支付
     </p>
     <div v-if="payResult.status === 'error'" class="m-4">
@@ -57,8 +57,8 @@ function refreshPayCode() {
 }
 
 function createQrcode(data: any) {
-  if (payType.value === "alipay") {
-    createAlipayQrcodeApi(data);
+  if (payType.value === "f2f") {
+    return createAlipayQrcodeApi(data);
   } else {
     ElMessage.warning("暂不支持该支付方式");
   }
@@ -84,6 +84,7 @@ function createAlipayQrcodeApi(data: IAlipayQrcodeParams): Promise<any> {
         colorLight: "#ffffff",
       }).then((canvas: Element) => {
         element?.appendChild(canvas);
+        console.log("支付二维码生成成功", res)
         alipayPayment
           .pollAlipayStatusApi(res.pid)
           .then((result) => {

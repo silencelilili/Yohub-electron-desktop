@@ -1,10 +1,10 @@
 <template>
   <div class="p-4">
     <ul class="list-ul">
-      <li class="list-li">
+      <!-- <li class="list-li">
         <span class="list-li_label">YoHubID</span>
         <span class="list-li_value">{{ userInfo.id }}</span>
-      </li>
+      </li> -->
       <li class="list-li">
         <span class="list-li_label">YoHub密码</span>
         <span class="list-li_value" @click="handleUpdatePassword"
@@ -13,44 +13,51 @@
       </li>
       <li class="list-li">
         <span class="list-li_label">绑定邮箱</span>
-        <span class="list-li_value" @click="handleUpdateEmail"
-          >{{ userInfo.email }} <el-icon><ArrowRight /></el-icon
-        ></span>
+        <span class="list-li_value"
+          >
+          <span v-if="!!userInfo.email" @click="handleUpdateEmail('edit')">{{ userInfo.email }}</span>
+          <span v-else @click="handleUpdateEmail('add')">立即绑定</span>
+           <el-icon><ArrowRight /></el-icon>
+         </span>
       </li>
-      <li class="list-li">
+      <!-- TODO:绑定手机 - 待完善 -->
+      <li v-if="false" class="list-li">
         <span class="list-li_label">绑定手机</span>
         <span class="list-li_value" @click="handleUpdatePhone"
           >去绑定 <el-icon><ArrowRight /></el-icon
         ></span>
       </li>
     </ul>
-    <div class="my-4 theme-color">绑定第三方账号</div>
-    <ul class="list-ul">
-      <li class="list-li">
-        <span class="list-li_label">Google</span>
-        <span class="list-li_value" @click="handleBindIm"
-          >去绑定 <el-icon><ArrowRight /></el-icon
-        ></span>
-      </li>
-      <li class="list-li">
-        <span class="list-li_label">Apple ID</span>
-        <span class="list-li_value"
-          >去绑定 <el-icon><ArrowRight /></el-icon
-        ></span>
-      </li>
-      <li class="list-li">
-        <span class="list-li_label">微信</span>
-        <span class="list-li_value"
-          >去绑定 <el-icon><ArrowRight /></el-icon
-        ></span>
-      </li>
-      <li class="list-li">
-        <span class="list-li_label">QQ</span>
-        <span class="list-li_value"
-          >去绑定 <el-icon><ArrowRight /></el-icon
-        ></span>
-      </li>
-    </ul>
+    <!-- TODO:绑定第三方账号 - 待完善 -->
+    <template v-if="false">
+      <div class="my-4 theme-color">绑定第三方账号</div>
+      <ul class="list-ul">
+        <li class="list-li">
+          <span class="list-li_label">Google</span>
+          <span class="list-li_value" @click="handleBindIm"
+            >去绑定 <el-icon><ArrowRight /></el-icon
+          ></span>
+        </li>
+        <li class="list-li">
+          <span class="list-li_label">Apple ID</span>
+          <span class="list-li_value"
+            >去绑定 <el-icon><ArrowRight /></el-icon
+          ></span>
+        </li>
+        <li class="list-li">
+          <span class="list-li_label">微信</span>
+          <span class="list-li_value"
+            >去绑定 <el-icon><ArrowRight /></el-icon
+          ></span>
+        </li>
+        <li class="list-li">
+          <span class="list-li_label">QQ</span>
+          <span class="list-li_value"
+            >去绑定 <el-icon><ArrowRight /></el-icon
+          ></span>
+        </li>
+      </ul>
+    </template>
 
 
     <!-- 绑定手机号 dialog -->
@@ -92,7 +99,7 @@
     </el-dialog>
 
     <!-- 绑定邮箱 dialog -->
-    <el-dialog v-model="emailDialogVisible" title="绑定邮箱" width="460" center align-center>
+    <el-dialog v-model="emailDialogVisible" :title="emailDialogTitle" width="460" center align-center>
       <el-form :model="emailForm" class="p-5">
         <el-form-item>
           <el-input v-model="emailForm.email" autocomplete="off" placeholder="请输入邮箱" />
@@ -112,13 +119,13 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="emailDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="updateEmailConfirm"> 绑定 </el-button>
+          <el-button type="primary" @click="updateEmailConfirm"> 确定 </el-button>
         </div>
       </template>
     </el-dialog>
 
     <!-- 修改密码 dialog -->
-    <el-dialog v-model="passwordDialogVisible" title="设置密码" width="460" center align-center>
+    <el-dialog v-model="passwordDialogVisible" title="修改密码" width="460" center align-center>
       <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" class="p-5">
         <el-form-item prop="password">
           <el-input
@@ -212,16 +219,18 @@ const updatePhoneConfirm = async () => {
  * TODO:修改邮箱接口
  */
 const emailDialogVisible = ref(false);
+const emailDialogTitle = ref('')
 const emailForm = reactive({
   email: '',
   code: '',
 });
-const handleUpdateEmail = () => {
+const handleUpdateEmail = (type: string) => {
+  emailDialogTitle.value = type === 'add' ? '绑定邮箱' : '修改邮箱';
   emailDialogVisible.value = true;
 };
 const updateEmailConfirm = async () => {
   try {
-    await updateEmail({newemail: emailForm.email, code: emailForm.code});
+    await updateEmail({newemail: emailForm.email, email_code: emailForm.code});
     emailDialogVisible.value = false;
     ElMessage.success('修改邮箱成功，请重新登录');
     // 跳转到登录页面
@@ -259,9 +268,9 @@ const passwordRules = {
   new_password: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 8, message: '密码长度最少为8个字符', trigger: 'blur' },
-    // { validator: validatePassword, trigger: 'blur' },
+    { validator: validatePassword, trigger: 'blur' },
   ],
-  confirm_password: [
+  confirm_new_password: [
     { required: true, message: '请输入确认密码', trigger: 'blur' },
     { min: 8, message: '确认密码长度8至16个字符', trigger: 'blur' },
     {
